@@ -1,0 +1,10 @@
+{
+  "id": "invalid-multi",
+  "puzzle": "...........4...8...9.628.4.93..5..272.53.49.864..8..13.8.493.5...9...1...7.....3.",
+  "validity": {"kind":"DoubleSolutionWarning","message":" Sudoku has multiple solutions"},
+  "solution": null,
+  "rating": {"er":0.0,"ep":0.0,"ed":0.0,"erTechnique":"No solution","epTechnique":"No solution","edTechnique":"No solution","erShort":"O","epShort":"O","edShort":"O"},
+  "steps": [
+    
+  ]
+}

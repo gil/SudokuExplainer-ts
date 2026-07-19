@@ -170,7 +170,7 @@ class SingleHintAccumulator implements HintsAccumulator { getHint(): Hint | null
 
 - `cell` is `y * 9 + x` (0-80). When the hint places nothing, `cell` is -1 and `value` is 0.
 - `removals` sorted by cell index, values ascending. `[]` when none.
-- Invalid puzzles: `validity` is `{ "kind": "<Java hint class simple name>", "message": "<hint.toString()>" }`, `solution` omitted, `rating`/`steps` still recorded (whatever Java produced).
+- Invalid puzzles: `validity` is `{ "kind": "<Java hint class simple name>", "message": "<hint.toString()>" }` (`kind` may be `""` when Java's warning is an anonymous class, e.g. `NoDoubles`), `solution` omitted. The rating loop does not run on invalid puzzles: `getDifficulty()` has no validity guard and never returns on under-constrained grids (no basic technique fires, so it climbs to nested forcing chains on an open grid). So `rating` holds the solver's pre-loop defaults (`er`/`ep`/`ed` = `0.0`, all techniques `"No solution"`, all shorts `"O"`) and `steps` is `[]`. Reference-semantics contract (verified in step-002, decided 2026-07-19): the port's `rate()` / `getDifficulty()` must apply the same guard, only running the rating loop when `checkValidity()` returns null, so driver and port stay aligned. This supersedes step-002's original "then getDifficulty(recorder)" phrasing, which was unconditional.
 - `test/fixtures/random.json`: JavaRandom reference sequences. `test/fixtures/generator/<name>.json`: `{ "seed": 1, "minEr": 1.0, "maxEr": 1.2, "symmetries": ["BiDiagonal","Orthogonal","Rotational180","Rotational90","Full"], "puzzle": "...", "er": 1.2 }`.
 
 ### Replay harness (defined in step-009, extended by steps 010-014)
@@ -202,7 +202,7 @@ This is sound because Java picked each step's hint as the first in registration 
 ## Steps
 
 - [x] `step-001-scaffolding.md`: pnpm/tsdown/vitest project skeleton with LICENSE and first commit
-- [ ] `step-002-java-driver-and-fixtures.md`: the Java reference driver plus a ~200-puzzle corpus of committed fixtures
+- [x] `step-002-java-driver-and-fixtures.md`: the Java reference driver plus a ~200-puzzle corpus of committed fixtures
 - [ ] `step-003-util.md`: ports of `JavaRandom` and `BitSet32` plus `InterruptedError`, tested against fixtures
 - [ ] `step-004-grid.md`: `SolvingTechnique` and `Options`, then `Cell`, `Grid` with regions, `Link`, potentials
 - [ ] `step-005-tools.md`: `CellSet`, `Permutations`, `Twomutations`, `CommonTuples`, `ValuesFormatter` and small tools

@@ -1,0 +1,10 @@
+{
+  "id": "invalid-double",
+  "puzzle": "11...............................................................................",
+  "validity": {"kind":"","message":"More than one \"1\" in a block"},
+  "solution": null,
+  "rating": {"er":0.0,"ep":0.0,"ed":0.0,"erTechnique":"No solution","epTechnique":"No solution","edTechnique":"No solution","erShort":"O","epShort":"O","edShort":"O"},
+  "steps": [
+    
+  ]
+}

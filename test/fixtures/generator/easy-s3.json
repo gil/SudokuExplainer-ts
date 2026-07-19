@@ -1,0 +1,8 @@
+{
+  "seed": 3,
+  "minEr": 1.0,
+  "maxEr": 1.2,
+  "symmetries": ["BiDiagonal","Orthogonal","Rotational180","Rotational90","Full"],
+  "puzzle": "3..5.4..24..263..8.8.....4.5..6.8..7..89425..9..3.7..6.5.....6.1..435..92..8.6..3",
+  "er": 1.2
+}

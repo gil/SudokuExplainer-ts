@@ -1,0 +1,10 @@
+{
+  "id": "invalid-nosol",
+  "puzzle": "12345678.........9...............................................................",
+  "validity": {"kind":"WarningMessage","message":"The  Sudoku has no solution"},
+  "solution": null,
+  "rating": {"er":0.0,"ep":0.0,"ed":0.0,"erTechnique":"No solution","epTechnique":"No solution","edTechnique":"No solution","erShort":"O","epShort":"O","edShort":"O"},
+  "steps": [
+    
+  ]
+}

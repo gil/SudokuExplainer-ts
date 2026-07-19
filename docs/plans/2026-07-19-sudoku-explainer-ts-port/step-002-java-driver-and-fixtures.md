@@ -22,7 +22,7 @@
 - Reference semantics for a puzzle: `grid.fromString(puzzle)`, `new Solver(grid)`, `solver.want = 0`, `solver.rebuildPotentialValues()`, then `getDifficulty(recorder)`. This intentionally skips serate's `adjustPencilmarks()` call, which only matters for pencilmark (Sukaku) input. The TS `rate()` will perform the same sequence, so driver and port stay aligned.
 - Do not change any file under `SukakuExplainer/`.
 
-- [ ] **Action 1: write the driver**
+- [x] **Action 1: write the driver**
 
 `scripts/java-driver/Driver.java` (default package). Complete skeleton below. Where a body says PORT-CHECK, open that Java file and use the exact public method that exists there (the plan was written against this source tree, and the names were verified except where marked).
 
@@ -249,7 +249,7 @@ public class Driver {
 }
 ```
 
-- [ ] **Action 2: compile and smoke-test the driver**
+- [x] **Action 2: compile and smoke-test the driver**
 
 ```bash
 javac -encoding UTF-8 -sourcepath SukakuExplainer -d scripts/java-driver/out scripts/java-driver/Driver.java
@@ -273,7 +273,7 @@ java -cp scripts/java-driver/out Driver rate /tmp/smoke.txt test/fixtures/puzzle
 
 Expected: `test/fixtures/puzzles/smoke.json` exists and is valid JSON with a `validity` object (this grid has too few clues). Inspect it, then delete it.
 
-- [ ] **Action 3: emit JavaRandom reference sequences**
+- [x] **Action 3: emit JavaRandom reference sequences**
 
 ```bash
 java -cp scripts/java-driver/out Driver random test/fixtures/random.json
@@ -281,7 +281,7 @@ java -cp scripts/java-driver/out Driver random test/fixtures/random.json
 
 Expected: JSON object keyed by the five seeds, four arrays of 30 ints each per seed.
 
-- [ ] **Action 4: generate the seeded corpus puzzles**
+- [x] **Action 4: generate the seeded corpus puzzles**
 
 For every row of this table, run the driver `generate` mode once per seed. ER bounds come from the Java `GenerateDialog.Difficulty` enum.
 
@@ -307,7 +307,7 @@ The last stdout line is the puzzle string. Append `"<level>-s<seed> <puzzle>"` t
 
 Diabolical generation can take minutes per seed. If a seed has not finished after 30 minutes, kill that one `java` process by its exact PID, skip the seed, and note it in the corpus header comment. At least 5 diabolical puzzles must make it in (top up from more seeds if needed).
 
-- [ ] **Action 5: add handpicked and invalid corpus entries**
+- [x] **Action 5: add handpicked and invalid corpus entries**
 
 Append to `test/fixtures/corpus.txt`:
 
@@ -325,7 +325,7 @@ Then craft `invalid-multi` from the `easy-s1` puzzle by replacing two of its clu
 
 The two monster entries are known extreme puzzles, and their exact provenance does not matter because whatever the Java engine outputs for them is the reference. They will be slow to rate (possibly hours), so run them last and separately. If either exceeds 2 hours, drop it from `corpus.txt` and record the omission in `step-999-leftovers.md`.
 
-- [ ] **Action 6: rate the whole corpus into fixtures**
+- [x] **Action 6: rate the whole corpus into fixtures**
 
 ```bash
 java -cp scripts/java-driver/out Driver rate test/fixtures/corpus.txt test/fixtures/puzzles
@@ -333,7 +333,7 @@ java -cp scripts/java-driver/out Driver rate test/fixtures/corpus.txt test/fixtu
 
 Expected: one `<id>.json` per corpus line. Sanity-check three by eye: an `easy` fixture ends with `er` between 1.0 and 1.2, `invalid-double` has the warning class Java actually reports in `validity.kind` (record reality, do not force expectations), and step `removals` are sorted.
 
-- [ ] **Action 7: technique coverage scan**
+- [x] **Action 7: technique coverage scan**
 
 Write `scripts/check-coverage.ts`:
 
@@ -367,7 +367,7 @@ pnpm exec tsx scripts/check-coverage.ts
 
 The REQUIRED list uses substrings because chaining and strong-link rule names embed structure details. Adjust entries to the real names you see in `distinct step techniques` (that output is the ground truth), then re-run. For every technique still missing, mine more puzzles by rating extra fiendish/diabolical seeds and keeping any whose paths add coverage (append them to the corpus and fixtures). Wings and uniqueness variants usually appear by fiendish level. Nested Forcing Chains only appear on monster-class puzzles, so they depend on Action 5's monsters. If a technique stays uncovered after reasonable mining, list it at the top of `test/fixtures/corpus.txt` in a `# uncovered:` comment. Step-016's meta-test will read that comment as the allowlist.
 
-- [ ] **Action 8: write scripts/generate-fixtures.ts and the driver README**
+- [x] **Action 8: write scripts/generate-fixtures.ts and the driver README**
 
 `scripts/generate-fixtures.ts` re-runs everything for reproducibility:
 
@@ -392,7 +392,7 @@ run('java -cp scripts/java-driver/out Driver generate 1 1.7 2.5 test/fixtures/ge
 
 `scripts/java-driver/README.md`: one page documenting the three driver modes and the JDK requirement. It must also state that fixtures are committed artifacts regenerated only via `pnpm exec tsx scripts/generate-fixtures.ts`.
 
-- [ ] **Action 9: commit**
+- [x] **Action 9: commit**
 
 ```bash
 git add scripts test/fixtures
@@ -404,5 +404,5 @@ git commit -m "feat: Java reference driver and differential fixture corpus"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
