@@ -201,7 +201,7 @@ This is sound because Java picked each step's hint as the first in registration 
 
 ## Steps
 
-- [ ] `step-001-scaffolding.md`: pnpm/tsdown/vitest project skeleton with LICENSE and first commit
+- [x] `step-001-scaffolding.md`: pnpm/tsdown/vitest project skeleton with LICENSE and first commit
 - [ ] `step-002-java-driver-and-fixtures.md`: the Java reference driver plus a ~200-puzzle corpus of committed fixtures
 - [ ] `step-003-util.md`: ports of `JavaRandom` and `BitSet32` plus `InterruptedError`, tested against fixtures
 - [ ] `step-004-grid.md`: `SolvingTechnique` and `Options`, then `Cell`, `Grid` with regions, `Link`, potentials

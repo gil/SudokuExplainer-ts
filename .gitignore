@@ -1,1 +1,4 @@
+node_modules/
+dist/
+scripts/java-driver/out/
 SukakuExplainer

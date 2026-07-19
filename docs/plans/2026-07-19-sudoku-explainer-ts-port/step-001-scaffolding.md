@@ -16,7 +16,7 @@
 - Consumes: nothing.
 - Produces: the toolchain every later step uses (`pnpm test`, `pnpm typecheck`, `pnpm build`) and the `src/` + `test/` layout.
 
-- [ ] **Action 1: initialize pnpm project**
+- [x] **Action 1: initialize pnpm project**
 
 Run each command separately (avoid `&&`):
 
@@ -36,7 +36,7 @@ corepack use pnpm@latest-10
 pnpm add -D typescript vitest tsdown tsx
 ```
 
-- [ ] **Action 2: write package.json**
+- [x] **Action 2: write package.json**
 
 Overwrite `package.json`, keeping the exact `packageManager` value and devDependency versions that the previous action wrote:
 
@@ -66,7 +66,7 @@ Overwrite `package.json`, keeping the exact `packageManager` value and devDepend
 }
 ```
 
-- [ ] **Action 3: write tsconfig.json**
+- [x] **Action 3: write tsconfig.json**
 
 ```json
 {
@@ -87,7 +87,7 @@ Overwrite `package.json`, keeping the exact `packageManager` value and devDepend
 
 Do not enable `noUncheckedIndexedAccess`. The port translates Java array indexing mechanically and that flag would force non-mechanical rewrites.
 
-- [ ] **Action 4: write tsdown.config.ts and vitest.config.ts**
+- [x] **Action 4: write tsdown.config.ts and vitest.config.ts**
 
 `tsdown.config.ts`:
 
@@ -119,7 +119,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Action 5: LICENSE, .gitignore, src/index.ts**
+- [x] **Action 5: LICENSE, .gitignore, src/index.ts**
 
 ```bash
 curl -s -o LICENSE https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
@@ -139,7 +139,7 @@ Create `src/index.ts` with a placeholder export so builds work before step-018:
 export const VERSION = '0.1.0';
 ```
 
-- [ ] **Action 6: smoke test**
+- [x] **Action 6: smoke test**
 
 `test/unit/smoke.test.ts`:
 
@@ -154,7 +154,7 @@ describe('scaffolding', () => {
 });
 ```
 
-- [ ] **Action 7: verify toolchain**
+- [x] **Action 7: verify toolchain**
 
 Run each and confirm success:
 
@@ -176,7 +176,7 @@ pnpm build
 
 Expected: `dist/index.js` and `dist/index.d.ts` produced.
 
-- [ ] **Action 8: commit**
+- [x] **Action 8: commit**
 
 ```bash
 git add .gitignore package.json pnpm-lock.yaml tsconfig.json tsdown.config.ts vitest.config.ts LICENSE src test docs
@@ -190,5 +190,5 @@ Note: this first commit also brings `docs/specs/` and `docs/plans/` into the rep
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
