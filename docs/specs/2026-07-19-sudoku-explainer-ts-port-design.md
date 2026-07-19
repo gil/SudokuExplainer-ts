@@ -1,0 +1,243 @@
+# Sudoku Explainer TypeScript Port, Design
+
+Date: 2026-07-19
+Status: approved design, plan not yet written
+
+## Goal
+
+An extremely accurate TypeScript port of the SukakuExplainer engine (the Java clone in `SukakuExplainer/`), covering vanilla Sudoku only, packaged as a dependency-free library for use in a web Sudoku application. The library provides:
+
+- Puzzle generation by difficulty level (with symmetry and seed control)
+- Next-hint and all-hints lookup with structured data and markdown explanations
+- Full logical solution paths
+- ER/EP/ED ratings (Explainer, Pearl, Diamond)
+- Brute-force solving and validity checking
+
+"Extremely accurate" is defined and enforced by differential testing: for every puzzle in the test corpus, the TS engine must produce the same ER/EP/ED and the same hint at every step of the solve path as the Java engine.
+
+## Baseline behavior
+
+The port replicates this fork's default vanilla-Sudoku configuration, not classic SE 1.2.1:
+
+- `revisedRating = 0` (default rule order/ratings of the fork)
+- `isBringBackSE121 = false` (fork technique set, which includes Turbot Fish via StrongLinks(2), WXYZ/VWXYZ/UVWXYZ/TUVWXYZ wings, and 3-6 strong-linked fishes)
+- `islkSudokuBUG = true`, `islkSudokuURUL = true` (lkSudoku fixes, on by default)
+- `FCPlus = 0`, `batchSolving = 0`
+- All variant flags off (`isVanilla = true`, `isBlocks = true`, no NC)
+
+These are frozen. The alternate code paths (`revisedRating=1`, `isBringBackSE121`, batch solving, variants, Sukaku) are not ported, and the corresponding unused branches are dropped during translation.
+
+## Scope
+
+### In scope (ported faithfully)
+
+- `Grid`, `Cell`, `Link`, region model (blocks, rows, columns), vanilla paths only
+- Validity checks: `NoDoubles`, `NumberOfFilledCells`, `NumberOfValues`, `BruteForceAnalysis`, `Solution`, `DoubleSolutionWarning`, `Analyser`
+- Techniques, using the fork's default vanilla producer list in exact registration order from `Solver`'s constructor (`revisedRating==0` branch) minus variant-gated entries:
+  - Direct producers: Hidden Single, Direct Pointing, Direct Hidden Pair, Naked Single, and Direct Hidden Triplet
+  - Indirect producers: Pointing & Claiming, Naked Pair, X-Wing, Hidden Pair, Naked Triplet, Swordfish, Hidden Triplet, Turbot Fish (as `StrongLinks(2)`), XY-Wing, XYZ-Wing, Unique Loops/Rectangles, Naked Quad, Jellyfish, Hidden Quad, 3 Strong Links, WXYZ-Wing, BUG, 4 Strong Links, VWXYZ-Wing, Aligned Pair Exclusion, 5 Strong Links, UVWXYZ-Wing, and 6 Strong Links
+  - Chaining producers: Forcing Chains & Cycles, TUVWXYZ-Wing, Aligned Triplet Exclusion, Nishio, Multiple Forcing Chains, Dynamic Forcing Chains, Dynamic Forcing Chains (+), and Nested Forcing Chains (all nesting levels registered in the Java constructor, including the `4,false,3` experimental entry)
+- Rating: the `Solver.getDifficulty()` ER/EP/ED loop and serate semantics (`er = 20.0` "Beyond solver", `0.0` "No solution")
+- `Generator`, `Symmetry` (all 10), `Point`, including the difficulty-bounded generate loop (`analyseDifficulty` with the include/exclude/notMax parameters ported but defaulted to no-ops in the public API)
+- Tools actually used by the above: `Permutations`, `Twomutations`, `CommonTuples`, `CellSet`, `LinkedSet`, `SingletonBitSet`, `ValuesFormatter`, `Pair`, `StrongReference` (or inlined equivalents where they are trivial wrappers, provided iteration semantics are preserved)
+- Hint class hierarchy: `Hint`, `DirectHint`, `IndirectHint`, `WarningHint`, `Rule`, all concrete `*Hint` classes for in-scope techniques, accumulators (`SingleHintAccumulator`, default accumulator), and the `HintProducer` interfaces
+- Technique enable/disable (equivalent of `Settings.getTechniques()`)
+
+### Out of scope (not ported)
+
+- Sukaku / pencilmark grid input
+- All variants: X, Disjoint Groups, Windoku, Asterisk, Center Dot, Girandola, Toroidal, Anti-Ferz, Anti-Knight, Latin Square, NC/cNC/FNC
+- Variant-only techniques: `VLocking`, `NakedSetGen` (Generalized Naked Sets), `forcingCellNC`, `lockedNC`, `forcingCellFNC`, `lockedFNC`
+- Alternate paths: `revisedRating=1`, `isBringBackSE121=true`, `batchSolving` modes, `getBatchDifficulty`, `SmallestHintsAccumulator`
+- GUI, applet, serate CLI, file I/O (`SudokuIO`), logging to `PrintWriter`, Java preferences
+- `W-Wing` (commented out in Java source)
+
+## Approach
+
+Faithful 1:1 port wrapped in an idiomatic public API:
+
+- `src/engine/` mirrors the Java package structure class-for-class and method-for-method. Java-shaped code (mutable `Grid`, producer classes, accumulator control flow) is intentional. Do not "improve" algorithms, ordering, or data structures beyond mechanical translation.
+- `src/index.ts` + `src/api/` expose a small idiomatic API so consumers never touch the engine internals.
+- Variant/Sukaku branches are removed during translation. Where a Java method interleaves vanilla and variant logic, only the vanilla branch is kept (the vanilla branch is identifiable because all variant logic is gated on `Settings` flags that are constants under the frozen baseline).
+
+## Repository layout
+
+```
+package.json            # name: sudoku-explainer, ESM only, zero runtime deps
+tsconfig.json
+tsdown.config.ts        # ESM + .d.ts
+docs/specs/
+SukakuExplainer/        # Java reference (kept in repo, excluded from npm package)
+src/
+  index.ts              # public API
+  api/                  # API implementation (rate, hint, generate, solve, explain)
+  engine/
+    Grid.ts Cell.ts Link.ts SolvingTechnique.ts Options.ts
+    solver/             # Solver, Hint hierarchy, accumulators, interfaces
+      rules/            # technique producers + hint classes
+      rules/chaining/   # Chaining, Potential, FullChain, chain hints
+      rules/unique/     # UniqueLoops + hints, BUG + hints
+      checks/           # BruteForceAnalysis, NoDoubles, Solution, Analyser, ...
+    generator/          # Generator, Symmetry, Point
+    tools/              # Permutations, CommonTuples, CellSet, ...
+    util/               # JavaRandom, InterruptedError, bitmask helpers
+  templates/            # markdown hint templates as TS string constants
+scripts/
+  java-driver/          # small Java program emitting JSON reference output
+  generate-fixtures.ts  # runs driver over corpus, writes test/fixtures/
+test/
+  fixtures/             # corpus puzzles + Java reference outputs (committed)
+  differential/         # TS vs fixtures
+  unit/                 # per-technique, JavaRandom, parsing, templates
+```
+
+Tooling: pnpm with Corepack, tsdown (not tsup), vitest, ESM only, Node >= 20 and evergreen browsers. No runtime dependencies. License: LGPL-2.1 (derivative work).
+
+## Fidelity rules
+
+1. **Producer and iteration order.** The order techniques are registered and run, the order cells/regions/values are iterated, and hint tie-breaking (`RuleComparer`: difficulty, then name) must match Java exactly. Java `ArrayList` maps to a JS array. `LinkedHashSet`/`LinkedHashMap` map to JS `Set`/`Map` (both insertion-ordered). `TreeMap`/`TreeSet` with comparators become explicit sorted structures replicating the comparator, including `compareTo` semantics on strings (Java `String.compareTo` is UTF-16 code-unit order, same as JS `<`/`>` on strings).
+2. **Candidate sets.** Java `BitSet` semantics (ascending `nextSetBit` iteration, cardinality) are reproduced with integer bitmasks plus ascending scans. Equality and containment semantics are preserved.
+3. **Numbers.** Ratings are IEEE 754 doubles in both languages, so arithmetic ports directly. Where Java does `int` arithmetic with potential overflow or integer division, use `| 0` / `Math.trunc` as needed (audited case by case during the port).
+4. **Randomness.** `util/JavaRandom.ts` is an exact port of `java.util.Random` (48-bit LCG with `next(bits)` and `nextInt(bound)` including the rejection loop). The multiply uses BigInt (or verified 32-bit split arithmetic). Given the same seed, the TS generator reproduces the Java generator's output bit-for-bit.
+5. **Control flow.** Java's `InterruptedException`-based early exit from accumulators becomes an internal `InterruptedError` used identically. Thread-priority calls are dropped (no behavioral effect). The GUI `Asker` ("use advanced techniques?") is replaced by always-proceed, matching serate/batch behavior, and the `isUsingAdvanced` bookkeeping is preserved where it affects flow.
+6. **hashCode/equals.** Hint deduplication (`result.contains(hint)`) and any `HashSet`/`HashMap` whose iteration order leaks into behavior must be audited: each Java `equals`/`hashCode` pair is ported, and hash-ordered collections are replaced with insertion-ordered ones only after verifying (via differential tests) that iteration order does not affect output. Where it does, Java's exact hash-iteration order is out of reach, so those sites keep deterministic ordered structures and the differential corpus proves output equivalence. Any corpus mismatch traced to such a site is fixed by replicating the Java behavior more closely.
+7. **Acceptance bar.** For every corpus puzzle: identical ER/EP/ED (exact double equality) and identical technique name, rating, placement, and eliminations at every solve step.
+
+## Public API
+
+Grid input anywhere a `grid` parameter appears: 81-char string (digits `1`-`9`, `.` or `0` for empty, whitespace/newlines tolerated) or `number[]` of length 81 (0 = empty). Malformed input throws `InvalidGridError`.
+
+```ts
+export type DifficultyLevel = 'easy' | 'medium' | 'hard' | 'fiendish' | 'diabolical';
+// ER bounds from the Java GenerateDialog:
+// easy 1.0-1.2, medium 1.3-1.6, hard 1.7-2.5, fiendish 2.6-6.0, diabolical 6.1-11.0
+
+export interface EngineOptions {
+  techniques?: SolvingTechnique[]; // default: all in-scope techniques
+}
+
+export function createEngine(options?: EngineOptions): Engine;
+
+interface Engine {
+  rate(grid: GridInput, hooks?: Hooks): Rating;
+  solvePath(grid: GridInput, hooks?: Hooks): { steps: Step[]; complete: boolean };
+  getHint(grid: GridInput): Hint | null;
+  getAllHints(grid: GridInput): Hint[];
+  solve(grid: GridInput): number[];            // brute-force solution, length 81
+  analyze(grid: GridInput, hooks?: Hooks): Analysis; // technique usage counts + difficulty
+  checkValidity(grid: GridInput): ValidityWarning | null;
+  generate(options?: GenerateOptions): GeneratedPuzzle | null; // null iff cancelled
+}
+
+export interface Hooks {
+  shouldCancel?: () => boolean;  // checked between solving steps / producer runs
+  onProgress?: (info: { step: number; difficulty: number }) => void;
+}
+
+export interface Rating {
+  er: number; ep: number; ed: number;          // 20.0 = beyond solver, 0.0 = no solution
+  erTechnique: string; epTechnique: string; edTechnique: string;
+  erTechniqueShort: string; epTechniqueShort: string; edTechniqueShort: string;
+}
+
+export interface Step {
+  hint: Hint;
+  gridBefore: number[];  // cell values before applying
+}
+
+export interface Hint {
+  technique: SolvingTechnique;
+  name: string;             // e.g. "Naked Pair"
+  shortName: string;        // serate short name
+  difficulty: number;       // rating of this rule
+  isDirect: boolean;
+  cell?: CellRef;           // placement, if any
+  value?: number;
+  removals: { cell: CellRef; values: number[] }[];
+  highlights: {             // what the Java GUI renders
+    greenCells?: CellRef[]; redCells?: CellRef[];
+    greenCandidates?: CandidateRef[]; redCandidates?: CandidateRef[];
+    orangeCandidates?: CandidateRef[];
+    regions?: RegionRef[];
+    links?: { from: CandidateRef; to: CandidateRef }[];
+  };
+  explain(): string;        // markdown, placeholders resolved
+  toString(): string;       // compact one-liner (Java Hint.toString)
+}
+
+export interface GenerateOptions {
+  difficulty?: DifficultyLevel | { min: number; max: number }; // default 'easy'
+  symmetries?: Symmetry[];  // default: the Java GenerateDialog default selection
+  seed?: number | bigint;   // seeds JavaRandom; omitted -> time-based like Java
+  shouldCancel?: () => boolean;
+  onProgress?: (info: { attempt: number }) => void;
+}
+
+export interface GeneratedPuzzle {
+  puzzle: number[];   // 81 values, 0 = empty
+  solution: number[];
+  rating: Rating;
+}
+```
+
+Top-level convenience functions (`rate`, `generate`, `solvePath`, `getHint`, `solve`, `checkValidity`) wrap a lazily created default engine.
+
+`CellRef` is `{ index: number; row: number; column: number; name: string /* "R5C7" */ }`. `CandidateRef` adds `value`. `RegionRef` is `{ type: 'block' | 'row' | 'column'; index: number; name: string }`.
+
+`Analysis` is `{ difficulty: number; steps: { technique: string; count: number }[] }` sorted by difficulty then name, matching Java's `RuleComparer` + `toNamedList`. `ValidityWarning` is `{ kind: 'noSolution' | 'multipleSolutions' | 'tooFewValues' | 'tooFewCells' | 'duplicateValue'; message: string; explain(): string }`, one kind per Java warning hint class.
+
+Notes:
+
+- `analyze` corresponds to Java `Solver.solve()` + `toNamedList` (rule frequency map). `rate` corresponds to `getDifficulty()`. `getHint`/`getAllHints` operate on the grid's current state with potentials rebuilt via `rebuildPotentialValues` + `cancelPotentialValues`.
+- The engine is stateless per call. Each method parses the input into a fresh internal `Grid` and never mutates caller data.
+- `getAllHints` mirrors Java `getAllHints`' tiering: direct and indirect producers always run, and chaining tiers run only when earlier tiers found nothing.
+- Named difficulty levels use only min/max ER bounds. The Java include/exclude/notMax technique filters exist in the ported `analyseDifficulty` signature but the public API passes the no-op defaults. (They can be exposed later without engine changes.)
+
+## Hint explanations (markdown)
+
+The Java engine builds hint explanations from HTML template resources (`HtmlLoader.loadHtml` + `format` with `{n}` placeholders). The port:
+
+1. **Port-time conversion.** Every reachable template (those referenced by in-scope hint classes, meaning the full set in `solver/rules/**/*.html` minus variant/NC templates) is converted once, by hand/script during the port, into a markdown string constant in `src/templates/`, keyed by the original file name. Placeholders (`{0}`, `{1}`, and so on) are kept verbatim.
+2. **Tag mapping.**
+   - `<h2>` becomes a `## ` heading, `<p>` a paragraph break, `<br>` a line break, and `<ul>`/`<li>` markdown lists
+   - `<b>` becomes `**bold**`, `<i>` becomes `*italic*`, `<u>` stays as inline HTML `<u>` (markdown has no underline)
+   - Color tags become inline HTML spans preserving the Java color roles, with the Java hex values documented for CSS: `<c>` becomes `<span color="cyan">` (#00AAAA, cell), `<g>` becomes `<span color="green">` (#009000, candidate), `<r>` becomes `<span color="red">` (red), `<o>` becomes `<span color="orange">` (#E08000), `<b1>` becomes `<span color="blue">` (#0000A0, region), `<b2>` becomes `<span color="darkgreen">` (#005000, region). Consumers can style via `span[color="..."]` attribute selectors or strip spans for plain text.
+3. **Runtime formatting.** Each hint class's `toHtml()` argument-building logic (cell names, region names, `formatList`, `formatValues`, nested chain HTML for chaining hints) is ported as-is. `HtmlLoader.format`'s sequential `{n}` replacement is ported exactly (it is plain `String.replace`, not MessageFormat). Chaining hints that compose HTML fragments programmatically (`ChainingHint` and subclasses) get the same treatment with markdown fragments.
+4. `hint.toString()` ports the Java `toString()` for the compact solve-path lines.
+
+## Difficulty levels for generation
+
+From the Java `GenerateDialog.Difficulty` enum (only min/max used):
+
+| Level | min ER | max ER |
+|---|---|---|
+| easy | 1.0 | 1.2 |
+| medium | 1.3 | 1.6 |
+| hard | 1.7 | 2.5 |
+| fiendish | 2.6 | 6.0 |
+| diabolical | 6.1 | 11.0 |
+
+`generate` repeats (random full grid via `BruteForceAnalysis.solveRandom`, symmetric clue removal, `analyseDifficulty` bounds check) until a puzzle's rating is within range, exactly like Java `Generator.generate`. Note: like the Java original, `analyseDifficulty` skips advanced/experimental (nested chain) producers, and hard/diabolical generation can take many attempts. `shouldCancel` is checked each attempt (and between rating steps) and makes the call return `null`.
+
+## Error handling
+
+- `InvalidGridError` (extends `Error`): malformed input (wrong length, bad characters, out-of-range values).
+- `CancelledError`: thrown by `rate`/`solvePath`/`analyze` when `shouldCancel` returns true. `generate` returns `null` instead (mirroring Java's interrupt contract).
+- Unsolvable puzzles, multiple-solution puzzles, and puzzles with too few givens do not throw: `checkValidity()` returns a structured `ValidityWarning` (ported from the Java warning hints), and `rate()` returns `er: 0, "No solution"` semantics exactly as the Java code does.
+- Puzzle solvable only beyond the technique set: `rate()` returns `er: 20`, `"Beyond solver"` (serate semantics), and `solvePath` returns `{ steps, complete: false }` with the steps found so far (its return type is `{ steps: Step[]; complete: boolean }`, `complete: true` when the puzzle was fully solved).
+- `analyze` on an unsolvable-by-logic puzzle mirrors Java `solve()`'s `UnsupportedOperationException` as a typed `BeyondSolverError`.
+
+## Testing
+
+1. **Java reference driver** (`scripts/java-driver/`): a small Java class compiled against the cloned fork (requires a local JDK, any recent LTS). For each input puzzle it emits JSON: ER/EP/ED (+ technique names) and the full step list (technique name, short name, rating, placement, eliminations) using the same single-hint loop as `getDifficulty`. A second mode runs the generator with a fixed seed and emits the resulting puzzle.
+2. **Corpus** (`test/fixtures/`): ~200 puzzles committed with their reference JSON, spread across ER 1.0-11+. It includes trivial puzzles, each named level, puzzles that exercise each in-scope technique at least once (found by scanning solve paths), invalid grids (no solution, multiple solutions), and known hard puzzles (Easter Monster class) capped where runtime is prohibitive.
+3. **Differential suite** (vitest): TS output must equal fixtures exactly (rating doubles, step sequence). Slow monster cases live in a separately tagged suite so the default `pnpm test` stays fast.
+4. **Unit tests**: each technique producer on handcrafted grids (hint found, cells/values/removals asserted), `JavaRandom` against sequences captured from Java, grid parsing, template formatting (placeholder substitution, tag conversion), and generator determinism (same `seed` gives the same puzzle as the Java driver).
+5. **Coverage of the port itself**: the differential corpus is the primary safety net, and a meta-test asserts every technique appears in at least one corpus solve path.
+
+## Non-goals / future work
+
+- Web Worker wrapper (consumer's responsibility, enabled by the sync + hooks design)
+- Classic SE 1.2.1 rating mode, variants, Sukaku input (deliberately dropped, could be revisited as separate projects)
+- Performance parity with Java (JS will be slower on nested chains; correctness first, and optimizations are allowed only if they provably preserve output, backed by the differential suite)
+- Exposing the generator's include/exclude technique filters in the public API

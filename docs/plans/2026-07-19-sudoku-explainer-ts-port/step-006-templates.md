@@ -1,0 +1,134 @@
+# Step 6: Hint Explanation Templates (HTML to markdown) and format()
+
+> Read `step-000-overview.md` in this directory before starting. It has the
+> goal, architecture, global constraints, and leftovers protocol that apply
+> to every step. This file assumes you have read it.
+
+**Depends on:** step-001 (toolchain). Independent of the Grid work, but scheduled here so hint classes (step-007 on) can import templates.
+
+**Files:**
+
+- Source: every `*.html` under `SukakuExplainer/diuf/sudoku/solver/` (rules, rules/chaining, rules/unique, checks)
+- Create: `scripts/convert-templates.ts`, `src/templates/format.ts`, `src/templates/rules.ts`, `src/templates/rulesChaining.ts`, `src/templates/rulesUnique.ts`, `src/templates/checks.ts`
+- Test: `test/unit/templates.test.ts`
+
+**Interfaces:**
+
+- Consumes: nothing from `src/engine`.
+- Produces:
+
+```ts
+// src/templates/format.ts
+// Port of HtmlLoader.format(): sequential replacement of {0}, {1}, ... with args.
+// Read HtmlLoader.java first and replicate its exact replacement semantics
+// (Java String.replace replaces ALL occurrences of the literal "{n}").
+export function format(template: string, ...args: Array<string | number>): string;
+
+// Template modules: one exported const per source file, named after the file
+// minus extension ("X-Cycle.html" -> exported as XCycle).
+// src/templates/rules.ts        <- solver/rules/*.html
+// src/templates/rulesChaining.ts<- solver/rules/chaining/*.html
+// src/templates/rulesUnique.ts  <- solver/rules/unique/*.html
+// src/templates/checks.ts       <- solver/checks/*.html
+export const NakedSetHint: string; // etc.
+```
+
+**Conversion rules (from the spec, apply mechanically):**
+
+- `<h2>` -> `## ` heading, `</h2>` -> blank line. `<p>`/`</p>` -> paragraph break. `<br>` -> markdown hard break (two trailing spaces + newline). `<ul>`/`<li>` -> markdown lists.
+- `<b>` -> `**`, `<i>` -> `*`, `<u>` stays inline HTML `<u>`.
+- Color tags become spans, keeping the Java color roles: `<c>` -> `<span color="cyan">` (#00AAAA), `<g>` -> `<span color="green">` (#009000), `<r>` -> `<span color="red">`, `<o>` -> `<span color="orange">` (#E08000), `<b1>` -> `<span color="blue">` (#0000A0), `<b2>` -> `<span color="darkgreen">` (#005000). Closing tags -> `</span>`.
+- Placeholders (`{0}`, `{1}` and up) stay verbatim.
+- Whitespace: collapse runs of spaces/newlines inside paragraphs to single spaces (HTML rendering semantics), trim each output.
+- Skip out-of-scope templates: `forcingCellNC.html`, `lockedNC.html`, `VLocking.html`, `NakedSetGenHint.html`, `UnderConstruction.html` (both copies). Convert everything else under `solver/`, including the Grouped* strong-link templates (reachable from `StrongLinksHint`).
+
+- [ ] **Action 1: write the failing format test**
+
+`test/unit/templates.test.ts`:
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { format } from '../../src/templates/format.js';
+import * as rules from '../../src/templates/rules.js';
+import * as chaining from '../../src/templates/rulesChaining.js';
+import * as unique from '../../src/templates/rulesUnique.js';
+import * as checks from '../../src/templates/checks.js';
+
+describe('format', () => {
+  it('replaces placeholders sequentially', () => {
+    expect(format('{0} sees {1} and {0}', 'A', 'B')).toBe('A sees B and A');
+  });
+  it('leaves unmatched placeholders alone', () => {
+    expect(format('{0} and {5}', 'A')).toBe('A and {5}');
+  });
+});
+
+describe('converted templates', () => {
+  const all = { ...rules, ...chaining, ...unique, ...checks };
+  it('exports a non-trivial set of templates', () => {
+    expect(Object.keys(all).length).toBeGreaterThan(40);
+  });
+  it('contains no unconverted structural HTML', () => {
+    for (const [name, tpl] of Object.entries(all)) {
+      expect(tpl, name).not.toMatch(/<(html|body|h2|p|ul|li|b|i)>/i);
+      expect(tpl, name).not.toMatch(/<\/(html|body|h2|p|ul|li|b|i)>/i);
+    }
+  });
+  it('keeps placeholders verbatim', () => {
+    expect(all.NakedSetHint).toContain('{0}');
+  });
+});
+```
+
+Adjust the second test if `format`'s Java semantics differ once you read `HtmlLoader.java` (the test must encode what Java does).
+
+- [ ] **Action 2: run it, expect failure**
+
+Run: `pnpm vitest run test/unit/templates.test.ts`
+Expected: FAIL (modules not found).
+
+- [ ] **Action 3: write format.ts**
+
+Port `HtmlLoader.format` from `SukakuExplainer/diuf/sudoku/tools/HtmlLoader.java`. Expected shape (verify against the Java source before keeping):
+
+```ts
+export function format(template: string, ...args: Array<string | number>): string {
+  let result = template;
+  for (let i = 0; i < args.length; i++) {
+    result = result.split(`{${i}}`).join(String(args[i]));
+  }
+  return result;
+}
+```
+
+- [ ] **Action 4: write the conversion script and generate the template modules**
+
+`scripts/convert-templates.ts` walks the four source directories and applies the conversion rules with plain string/regex passes. It writes the four TS modules with a `// generated by scripts/convert-templates.ts, do not edit by hand` header. Export names: file basename with non-identifier characters removed (`X-Cycle` -> `XCycle`, names starting with a digit are not present).
+
+Run: `pnpm exec tsx scripts/convert-templates.ts`
+Expected: the four modules under `src/templates/` are (re)written.
+
+Then review the output by eye against 3 sources of different shapes: `solver/rules/NakedSetHint.html`, `solver/rules/chaining/DynamicContradictionHint.html`, `solver/checks/NoSolution.html`. Fix conversion bugs in the script and re-run (never hand-edit the generated modules).
+
+- [ ] **Action 5: run the tests, expect pass**
+
+Run: `pnpm vitest run test/unit/templates.test.ts`
+Expected: PASS.
+
+Run: `pnpm typecheck`
+Expected: exits 0.
+
+- [ ] **Action 6: commit**
+
+```bash
+git add scripts/convert-templates.ts src/templates test/unit/templates.test.ts
+```
+
+```bash
+git commit -m "feat: convert hint HTML templates to markdown constants"
+```
+
+## Step completion
+
+- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
