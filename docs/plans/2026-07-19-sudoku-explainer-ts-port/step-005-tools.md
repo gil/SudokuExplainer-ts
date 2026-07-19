@@ -57,7 +57,7 @@ export class StrongReference<T> { /* per Java */ }
 
 `LinkedSet.java`: read it first. If it is a plain insertion-ordered set wrapper, do not port it, use `Set` at call sites and note that in the step's commit message. If it has extra behavior (peek/first/last), port it to `src/engine/tools/LinkedSet.ts`.
 
-- [ ] **Action 1: write the failing tools test**
+- [x] **Action 1: write the failing tools test**
 
 `test/unit/tools.test.ts`:
 
@@ -127,20 +127,20 @@ describe('formatting helpers', () => {
 
 Check each expectation against the Java code while porting. If the Java behavior differs from an assumption baked into a test above (say, the exact `formatValues` separator handling), fix the TEST to match Java, never the reverse. Note the CommonTuples degenerate behaviors too (cells with a single candidate, empty sets) and mirror them exactly, since NakedSet relies on them.
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/tools.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 3: port the tools**
+- [x] **Action 3: port the tools**
 
 Translate each Java file per the interface block. `Permutations.java` uses `long` masks and `Long.bitCount`-style helpers, translate to `number` and the counting loop already used in `BitSet32.cardinality`. Keep the Java iteration order exactly (differential tests depend on producer scan order).
 
-- [ ] **Action 4: complete Grid.initCellSets()**
+- [x] **Action 4: complete Grid.initCellSets()**
 
 Fill `Grid.visibleCellsSet` and `Grid.forwardVisibleCellsSet` from the static tables like the `Grid.java` static block does, now that `CellSet` exists. Run `pnpm vitest run test/unit/Grid.test.ts` to confirm nothing regressed.
 
-- [ ] **Action 5: run tests and typecheck, expect pass**
+- [x] **Action 5: run tests and typecheck, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -148,7 +148,7 @@ Expected: all suites pass.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 6: commit**
+- [x] **Action 6: commit**
 
 ```bash
 git add src/engine test/unit/tools.test.ts
@@ -160,5 +160,5 @@ git commit -m "feat: port tools (CellSet, Permutations, CommonTuples, formatters
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol

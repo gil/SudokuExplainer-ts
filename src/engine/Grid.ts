@@ -1,5 +1,6 @@
 import { BitSet32 } from './util/BitSet32.js';
 import { Cell } from './Cell.js';
+import { CellSet } from './tools/CellSet.js';
 
 // Region type indexes, as fixed by Grid.java (Block.getRegionTypeIndex()==0,
 // Row==1, Column==2) and by the order of the static `regions` array.
@@ -346,8 +347,17 @@ export class Grid {
   static forwardVisibleCellIndex: number[][] = forwardVisibleCellIndex;
   static regionCellIndex: number[][] = regionCellIndex;
   static cellRegions: number[][] = cellRegions;
-  static visibleCellsSet: unknown[] = [];
-  static forwardVisibleCellsSet: unknown[] = [];
+  // Populated lazily (see initCellSets) to avoid a circular-import TDZ: CellSet
+  // imports Grid, so Grid cannot build CellSets at module-eval time.
+  static get visibleCellsSet(): CellSet[] {
+    if (visibleCellsSetCache === null) initCellSets();
+    return visibleCellsSetCache!;
+  }
+
+  static get forwardVisibleCellsSet(): CellSet[] {
+    if (forwardVisibleCellsSetCache === null) initCellSets();
+    return forwardVisibleCellsSetCache!;
+  }
 
   private cellValues: number[] = new Array(81).fill(0);
   private cellPotentialValues: BitSet32[] = new Array(81);
@@ -505,7 +515,12 @@ export class Grid {
   }
 }
 
-// The CellSet-backed visible-cell caches are completed in step-005.
+let visibleCellsSetCache: CellSet[] | null = null;
+let forwardVisibleCellsSetCache: CellSet[] | null = null;
+
+// Mirrors the Grid.java static block that fills visibleCellsSet /
+// forwardVisibleCellsSet from the *CellIndex tables (vanilla, isBlocks==true).
 export function initCellSets(): void {
-  // completed in step-005 (needs CellSet)
+  visibleCellsSetCache = visibleCellIndex.map((idx) => new CellSet(idx));
+  forwardVisibleCellsSetCache = forwardVisibleCellIndex.map((idx) => new CellSet(idx));
 }
