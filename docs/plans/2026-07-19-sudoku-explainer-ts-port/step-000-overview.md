@@ -204,7 +204,7 @@ This is sound because Java picked each step's hint as the first in registration 
 - [x] `step-001-scaffolding.md`: pnpm/tsdown/vitest project skeleton with LICENSE and first commit
 - [x] `step-002-java-driver-and-fixtures.md`: the Java reference driver plus a ~200-puzzle corpus of committed fixtures
 - [x] `step-003-util.md`: ports of `JavaRandom` and `BitSet32` plus `InterruptedError`, tested against fixtures
-- [ ] `step-004-grid.md`: `SolvingTechnique` and `Options`, then `Cell`, `Grid` with regions, `Link`, potentials
+- [x] `step-004-grid.md`: `SolvingTechnique` and `Options`, then `Cell`, `Grid` with regions, `Link`, potentials
 - [ ] `step-005-tools.md`: `CellSet`, `Permutations`, `Twomutations`, `CommonTuples`, `ValuesFormatter` and small tools
 - [ ] `step-006-templates.md`: HTML->markdown template conversion + `format()`
 - [ ] `step-007-hint-framework.md`: `Hint` hierarchy with producer interfaces, accumulators and `Potential`

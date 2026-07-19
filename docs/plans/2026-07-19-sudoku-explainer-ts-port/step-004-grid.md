@@ -55,11 +55,11 @@ export class Link { constructor(srcCell: Cell, srcValue: number, dstCell: Cell, 
 - `potentials.ts`: port `Solver.rebuildPotentialValues` and `cancelPotentialValues` as free functions taking a `Grid`. In `cancelPotentialValues` keep only the vanilla path (the whole `isForbiddenPairs()` block drops, since `whichNC == 0` is frozen).
 - `Link.ts` is a trivial 1:1 port.
 
-- [ ] **Action 1: port SolvingTechnique.ts and Options.ts**
+- [x] **Action 1: port SolvingTechnique.ts and Options.ts**
 
 Write both files per the notes above. No test yet (they are data).
 
-- [ ] **Action 2: write the failing Grid test**
+- [x] **Action 2: write the failing Grid test**
 
 `test/unit/Grid.test.ts`:
 
@@ -127,18 +127,18 @@ describe('Grid', () => {
 
 Adjust the region type index in the test to the value you find in `Grid.java` (search `getRegionTypeIndex` in the `Row` class). Record the mapping as constants in `Grid.ts`.
 
-- [ ] **Action 3: run it, expect failure**
+- [x] **Action 3: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/Grid.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 4: port Cell.ts, Grid.ts, Link.ts, potentials.ts**
+- [x] **Action 4: port Cell.ts, Grid.ts, Link.ts, potentials.ts**
 
 Mechanical translation per the scope notes. Order of work inside the action: `Cell.ts` first (no dependencies), then `Grid.ts` statics and instance methods, then `potentials.ts`. Keep Java loop bounds and iteration directions identical, including the `visibleCellIndex`-driven loop in `cancelPotentialValues`.
 
 `Grid.ts` needs `CellSet` for `visibleCellsSet`/`forwardVisibleCellsSet` which arrive in step-005. For now declare them as `static visibleCellsSet: unknown[]` placeholders only if `Grid.java` initializes them in the static block you are porting. Better: move their initialization into a `initCellSets()` function exported from `Grid.ts` that step-005 completes. Leave a `// completed in step-005` comment.
 
-- [ ] **Action 5: run the test, expect pass**
+- [x] **Action 5: run the test, expect pass**
 
 Run: `pnpm vitest run test/unit/Grid.test.ts`
 Expected: PASS.
@@ -146,7 +146,7 @@ Expected: PASS.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 6: commit**
+- [x] **Action 6: commit**
 
 ```bash
 git add src/engine test/unit/Grid.test.ts
@@ -158,5 +158,5 @@ git commit -m "feat: port Grid model, regions, potentials, options"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
