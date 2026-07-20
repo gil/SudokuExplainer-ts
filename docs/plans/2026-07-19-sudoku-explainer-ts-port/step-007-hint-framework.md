@@ -74,7 +74,7 @@ export interface HasParentPotentialHint { getRuleParents(initialGrid: Grid, curr
 
 Where a comment says "per X.java", the Java file is the body spec. Port every method, keep names. `Potential.Cause` is a Java enum, port as a TS string or numeric enum matching the Java constant order.
 
-- [ ] **Action 1: write the failing test**
+- [x] **Action 1: write the failing test**
 
 `test/unit/hintFramework.test.ts`:
 
@@ -105,12 +105,12 @@ describe('SingleHintAccumulator', () => {
 });
 ```
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/hintFramework.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 3: port the base classes**
+- [x] **Action 3: port the base classes**
 
 Translate the eleven Java files per the interface block. Points needing care:
 
@@ -119,7 +119,7 @@ Translate the eleven Java files per the interface block. Points needing care:
 - `DirectHint.apply()` sets the cell value and then calls the Java equivalent of candidate cancellation. Read what `DirectHint.java` actually calls and mirror it using `cancelPotentialValues` or per-cell updates exactly as written.
 - `WarningHint` in Java extends `IndirectHint` with empty removals. Confirm in the source and mirror the hierarchy.
 
-- [ ] **Action 4: run the tests, expect pass**
+- [x] **Action 4: run the tests, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -127,7 +127,7 @@ Expected: all suites pass.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver test/unit/hintFramework.test.ts
@@ -139,5 +139,5 @@ git commit -m "feat: port hint hierarchy, producer interfaces and accumulators"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
-- [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
+- [x] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol (nothing deferred)

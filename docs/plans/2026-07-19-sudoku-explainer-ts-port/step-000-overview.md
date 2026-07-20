@@ -207,7 +207,7 @@ This is sound because Java picked each step's hint as the first in registration 
 - [x] `step-004-grid.md`: `SolvingTechnique` and `Options`, then `Cell`, `Grid` with regions, `Link`, potentials
 - [x] `step-005-tools.md`: `CellSet`, `Permutations`, `Twomutations`, `CommonTuples`, `ValuesFormatter` and small tools
 - [x] `step-006-templates.md`: HTML->markdown template conversion + `format()`
-- [ ] `step-007-hint-framework.md`: `Hint` hierarchy with producer interfaces, accumulators and `Potential`
+- [x] `step-007-hint-framework.md`: `Hint` hierarchy with producer interfaces, accumulators and `Potential`
 - [ ] `step-008-checks.md`: `BruteForceAnalysis` + validity checks + `Solution`
 - [ ] `step-009-singles-locking-sets.md`: singles, Locking, HiddenSet and NakedSet, plus the replay harness
 - [ ] `step-010-fish-strong-links.md`: `Fisherman` and `StrongLinks` with their hints
