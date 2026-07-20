@@ -8,6 +8,10 @@ export const islkSudokuBUG = true;
 export const islkSudokuURUL = true;
 export const FCPlus = 0;
 
+// Java Settings.variantString / isBlocks() under the frozen vanilla baseline.
+export const variantString = '';
+export const isBlocks = true;
+
 // Java Settings.init() default under the frozen baseline: every in-scope
 // technique except FiveStrongLinks and SixStrongLinks.
 export function defaultTechniques(): Set<SolvingTechnique> {

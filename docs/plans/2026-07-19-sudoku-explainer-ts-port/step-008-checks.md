@@ -41,7 +41,7 @@ Port notes:
 - The `WarningHint` subclasses' `toHtml` methods load HTML via `HtmlLoader.loadHtml(this, "X.html")`. Replace each with the imported template constant of the same name and the ported `format()`.
 - `toString()` of each warning hint feeds the fixtures' `validity.message`, port exactly.
 
-- [ ] **Action 1: write the failing checks test**
+- [x] **Action 1: write the failing checks test**
 
 `test/unit/checks.test.ts` (fixture-driven, no handcrafted expectations):
 
@@ -93,16 +93,16 @@ describe('brute-force solution', () => {
 
 Complete the second describe block once the `Solution`/`SolutionHint` port shows the exact call sequence (fill in real, running code before this step ends). Also add three direct assertions using corpus entries by id: `invalid-double` must yield a `NoDoubles`-class warning from the ported `NoDoubles` producer, `invalid-fewclues` a `NumberOfFilledCells`/`NumberOfValues` warning matching its fixture `validity.kind`, and `invalid-nosol` whatever its fixture recorded. Compare `hint.constructor.name` against `validity.kind` and `hint.toString()` against `validity.message`.
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/checks.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 3: port the eight classes**
+- [x] **Action 3: port the eight classes**
 
 Mechanical translation per the notes. `getCountSolutions` timing matters later (it runs in the generator loop), do not add allocations inside the recursion that Java does not have.
 
-- [ ] **Action 4: run the tests, expect pass**
+- [x] **Action 4: run the tests, expect pass**
 
 Run: `pnpm vitest run test/unit/checks.test.ts`
 Expected: PASS, including every corpus fixture's solution-count check.
@@ -110,7 +110,7 @@ Expected: PASS, including every corpus fixture's solution-count check.
 Run: `pnpm test`
 Expected: all suites pass.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver/checks test/unit/checks.test.ts
@@ -122,5 +122,5 @@ git commit -m "feat: port brute-force analysis and validity checks"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
