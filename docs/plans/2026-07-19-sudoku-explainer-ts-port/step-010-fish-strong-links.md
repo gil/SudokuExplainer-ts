@@ -34,22 +34,22 @@ export class StrongLinksHint extends IndirectHint /* + Rule */ { /* per StrongLi
 - Variant gating: any `Settings` checks inside these files resolve under the frozen baseline, keep only the surviving branches.
 - `StrongLinksHint.toHtml` chooses between several templates (`StrongLinksHint`, `GroupedStrongLinksHint`, `GroupedStrongLinksLoopHint` and fish variants), all converted in step-006 under `src/templates/rules.ts`.
 
-- [ ] **Action 1: splice producers into the registry (test first)**
+- [x] **Action 1: splice producers into the registry (test first)**
 
 Update `test/differential/producers.ts`: add `Fisherman(2)` at indirect 3, `Fisherman(3)` at indirect 6, `StrongLinks(2)` at indirect 8, `Fisherman(4)` at indirect 13, `StrongLinks(3)` at indirect 15 and `StrongLinks(4)` at indirect 18 (positions are commented in the file). Add every new `getName()` string to `PORTED_TECHNIQUE_NAMES` after reading `StrongLinksHint.java` (X-Wing, Swordfish and Jellyfish names come from the `Fisherman` path, strong-link names from `StrongLinksHint`).
 
 Run: `pnpm vitest run test/differential/replay.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 2: port `Fisherman`**
+- [x] **Action 2: port `Fisherman`**
 
 Translate `Fisherman.java`. Re-run the replay test, fixtures whose paths now reach X-Wing/Swordfish/Jellyfish steps must match.
 
-- [ ] **Action 3: port StrongLinks and StrongLinksHint**
+- [x] **Action 3: port StrongLinks and StrongLinksHint**
 
 Translate both files. This is slow, methodical work, keep the Java file open side-by-side and preserve loop order and `Twomutations` usage exactly.
 
-- [ ] **Action 4: run all tests, expect pass**
+- [x] **Action 4: run all tests, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass, replay prefixes now extend through strong-link steps.
@@ -57,7 +57,7 @@ Expected: all suites pass, replay prefixes now extend through strong-link steps.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver/rules test/differential/producers.ts
@@ -69,5 +69,5 @@ git commit -m "feat: port Fisherman and StrongLinks producers"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
-- [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
+- [x] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol

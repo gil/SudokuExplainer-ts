@@ -1,3 +1,15 @@
+import type { Grid } from './Grid.js';
+import type { CellSet } from './tools/CellSet.js';
+
+// Grid and Cell reference each other. Cell only needs Grid at runtime (for
+// getVisibleCells), so we keep this module free of value imports (a leaf) to
+// preserve the eval order that lets Grid build its cells. Grid installs itself
+// here after it finishes loading.
+let gridRef: typeof Grid | null = null;
+export function _setGridRef(g: typeof Grid): void {
+  gridRef = g;
+}
+
 // Ported from diuf.sudoku.Cell. Cell notation is frozen to RC notation
 // (Settings.isRCNotation defaults to true), so the letter-column branch is
 // dropped.
@@ -28,6 +40,10 @@ export class Cell {
     return this.index;
   }
 
+  getVisibleCells(): CellSet {
+    return gridRef!.visibleCellsSet[this.index];
+  }
+
   toFullString(): string {
     return 'Cell ' + cellName(this.getX(), this.getY());
   }
@@ -45,6 +61,15 @@ export class Cell {
   static toFullString(...cells: Cell[]): string {
     let result = 'Cell';
     result += cells.length <= 1 ? ' ' : 's ';
+    for (let i = 0; i < cells.length; i++) {
+      if (i > 0) result += ',';
+      result += cells[i].toString();
+    }
+    return result;
+  }
+
+  static toString(...cells: Cell[]): string {
+    let result = '';
     for (let i = 0; i < cells.length; i++) {
       if (i > 0) result += ',';
       result += cells[i].toString();

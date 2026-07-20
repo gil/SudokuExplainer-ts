@@ -210,7 +210,7 @@ This is sound because Java picked each step's hint as the first in registration 
 - [x] `step-007-hint-framework.md`: `Hint` hierarchy with producer interfaces, accumulators and `Potential`
 - [x] `step-008-checks.md`: `BruteForceAnalysis` + validity checks + `Solution`
 - [x] `step-009-singles-locking-sets.md`: singles, Locking, HiddenSet and NakedSet, plus the replay harness
-- [ ] `step-010-fish-strong-links.md`: `Fisherman` and `StrongLinks` with their hints
+- [x] `step-010-fish-strong-links.md`: `Fisherman` and `StrongLinks` with their hints
 - [ ] `step-011-wings.md`: XY/XYZ/WXYZ/VWXYZ/UVWXYZ/TUVWXYZ wings with their hints
 - [ ] `step-012-unique-bug.md`: `UniqueLoops` and `BivalueUniversalGrave` with their hints
 - [ ] `step-013-aligned-exclusion.md`: APE + ATE with their hint class

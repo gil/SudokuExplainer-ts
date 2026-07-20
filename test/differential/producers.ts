@@ -4,6 +4,8 @@ import { NakedSingle } from '../../src/engine/solver/rules/NakedSingle.js';
 import { Locking } from '../../src/engine/solver/rules/Locking.js';
 import { HiddenSet } from '../../src/engine/solver/rules/HiddenSet.js';
 import { NakedSet } from '../../src/engine/solver/rules/NakedSet.js';
+import { Fisherman } from '../../src/engine/solver/rules/Fisherman.js';
+import { StrongLinks } from '../../src/engine/solver/rules/StrongLinks.js';
 
 // Registration order from step-000-overview.md. Entries for producers that are
 // not ported yet are simply absent; steps 010-014 splice theirs in AT THE
@@ -19,21 +21,21 @@ export function currentProducers(): HintProducer[] {
     // indirect tier
     new Locking(false),          // indirect 1
     new NakedSet(2),             // indirect 2
-    // indirect 3: Fisherman(2)        (step-010)
+    new Fisherman(2),            // indirect 3
     new HiddenSet(2, false),     // indirect 4
     new NakedSet(3),             // indirect 5
-    // indirect 6: Fisherman(3)        (step-010)
+    new Fisherman(3),            // indirect 6
     new HiddenSet(3, false),     // indirect 7
-    // indirect 8: StrongLinks(2)      (step-010)
+    new StrongLinks(2),          // indirect 8
     // indirect 9-10: XYWing           (step-011)
     // indirect 11: UniqueLoops        (step-012)
     new NakedSet(4),             // indirect 12
-    // indirect 13: Fisherman(4)       (step-010)
+    new Fisherman(4),            // indirect 13
     new HiddenSet(4, false),     // indirect 14
-    // indirect 15: StrongLinks(3)     (step-010)
+    new StrongLinks(3),          // indirect 15
     // indirect 16: WXYZWing           (step-011)
     // indirect 17: BivalueUniversalGrave (step-012)
-    // indirect 18: StrongLinks(4)     (step-010)
+    new StrongLinks(4),          // indirect 18
     // indirect 19: VWXYZWing          (step-011)
     // indirect 20: AlignedPairExclusion (step-013)
     // indirect 21: StrongLinks(5) is DISABLED by default, never add it here
@@ -62,4 +64,26 @@ export const PORTED_TECHNIQUE_NAMES = new Set<string>([
   'Hidden Pair',
   'Hidden Triplet',
   'Hidden Quad',
+  // Fisherman (LockingHint) names
+  'X-Wing',
+  'Swordfish',
+  'Jellyfish',
+  // StrongLinksHint names (the numeric suffix is part of getName()); these are
+  // the exact strings the corpus exercises for StrongLinks(2..4).
+  'Skyscraper 011',
+  'Grouped Skyscraper 111',
+  '2-String Kite 012',
+  'Grouped 2-String Kite 112',
+  '2 Strong links 001',
+  'Grouped 2 Strong links 101',
+  '3 Skyscrapers 0111',
+  'Grouped 3 Skyscrapers 1111',
+  '3-String Kite 0112',
+  '3 Strong links 0011',
+  'Grouped 3 Strong links 1001',
+  'Grouped 3 Strong links 1011',
+  'Grouped 3 Strong links 2001',
+  '(3 Strong Links) X-Loop 0011',
+  '(3 Strong Links) X-Loop 0111',
+  'Grouped 4 Strong links 40001',
 ]);

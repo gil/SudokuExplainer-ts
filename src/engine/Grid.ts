@@ -1,5 +1,5 @@
 import { BitSet32 } from './util/BitSet32.js';
-import { Cell } from './Cell.js';
+import { Cell, _setGridRef } from './Cell.js';
 import { CellSet } from './tools/CellSet.js';
 
 // Region type indexes, as fixed by Grid.java (Block.getRegionTypeIndex()==0,
@@ -185,6 +185,57 @@ const forwardVisibleCellIndex: number[][] = [
 const regionCellIndex: number[][] = Array.from({ length: 81 }, () => [0, 0, 0]);
 const cellRegions: number[][] = Array.from({ length: 81 }, () => [0, 0, 0]);
 
+// Cell-position configuration tables used by the strong-links producer, copied
+// verbatim from Grid.Region (Grid.java lines 2630-2675).
+// 4-cell set: cells in a block sharing exactly 2 columns and 2 rows.
+const blocksEmptyCells: number[][] = [
+  [4, 5, 7, 8],
+  [3, 5, 6, 8],
+  [3, 4, 6, 7],
+  [1, 2, 7, 8],
+  [0, 2, 6, 8],
+  [0, 1, 6, 7],
+  [1, 2, 4, 5],
+  [0, 2, 3, 5],
+  [0, 1, 3, 4],
+  [6, 7, 8, -1],
+  [3, 4, 5, -1],
+  [0, 1, 2, -1],
+  [2, 5, 8, -1],
+  [1, 4, 7, -1],
+  [0, 3, 6, -1],
+];
+// 4-cell set: cells in a block sharing exactly 1 column and 1 row (or 2 lines)
+// without the cell at the intersection.
+const blockGroupedCells: number[][] = [
+  [3, 6, -1, 1, 2, -1],
+  [4, 7, -1, 0, 2, -1],
+  [5, 8, -1, 0, 1, -1],
+  [0, 6, -1, 4, 5, -1],
+  [1, 7, -1, 3, 5, -1],
+  [2, 8, -1, 3, 4, -1],
+  [0, 3, -1, 7, 8, -1],
+  [1, 4, -1, 6, 8, -1],
+  [2, 5, -1, 6, 7, -1],
+  [0, 1, 2, 3, 4, 5],
+  [0, 1, 2, 6, 7, 8],
+  [3, 4, 5, 6, 7, 8],
+  [0, 3, 6, 1, 4, 7],
+  [0, 3, 6, 2, 5, 8],
+  [1, 4, 7, 2, 5, 8],
+];
+const LineEmptyCells: number[][] = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+];
+const LineGroupedCells: number[][] = [
+  [3, 4, 5, 6, 7, 8],
+  [0, 1, 2, 6, 7, 8],
+  [0, 1, 2, 3, 4, 5],
+];
+const blocksHeartCells: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
 // Ported from Grid.Region (vanilla surface only).
 export abstract class Region {
   protected regionCells: number[] = new Array(9).fill(0);
@@ -194,6 +245,52 @@ export abstract class Region {
 
   abstract getRegionTypeIndex(): number;
   abstract getRegionIndex(): number;
+
+  Rectangle(index: number): BitSet32 {
+    const result = new BitSet32();
+    for (let i = 0; i < 4; i++) if (blocksEmptyCells[index][i] >= 0) result.set(blocksEmptyCells[index][i]);
+    return result;
+  }
+
+  crossBlade1(index: number): BitSet32 {
+    const result = new BitSet32();
+    for (let i = 0; i < 3; i++) if (blockGroupedCells[index][i] >= 0) result.set(blockGroupedCells[index][i]);
+    return result;
+  }
+
+  crossBlade2(index: number): BitSet32 {
+    const result = new BitSet32();
+    for (let i = 3; i < 6; i++) if (blockGroupedCells[index][i] >= 0) result.set(blockGroupedCells[index][i]);
+    return result;
+  }
+
+  crossHeart(index: number): BitSet32 {
+    const result = new BitSet32();
+    result.set(index);
+    return result;
+  }
+
+  Heart(index: number): number {
+    return blocksHeartCells[index];
+  }
+
+  lineEmptyCells(index: number): BitSet32 {
+    const result = new BitSet32();
+    for (let i = 0; i < 3; i++) result.set(LineEmptyCells[index][i]);
+    return result;
+  }
+
+  lineBlade1(index: number): BitSet32 {
+    const result = new BitSet32();
+    for (let i = 0; i < 3; i++) result.set(LineGroupedCells[index][i]);
+    return result;
+  }
+
+  lineBlade2(index: number): BitSet32 {
+    const result = new BitSet32();
+    for (let i = 0; i < 3; i++) result.set(LineGroupedCells[index][i + 3]);
+    return result;
+  }
 
   getCell(index: number): Cell {
     return cells[this.regionCells[index]];
@@ -380,6 +477,10 @@ export class Grid {
     return regions[regionTypeIndex];
   }
 
+  static getRegionAt(regionTypeIndex: number, cellIndex: number): Region {
+    return regions[regionTypeIndex][cellRegions[cellIndex][regionTypeIndex]];
+  }
+
   fixGivens(): void {
     for (let i = 0; i < 81; i++) {
       if (this.getCellValue(i) !== 0) this._isGiven[i] = true;
@@ -514,6 +615,10 @@ export class Grid {
     return true;
   }
 }
+
+// Give Cell a runtime handle on Grid without making Cell import Grid as a value
+// (which would break the eval-order that lets Grid construct its cells).
+_setGridRef(Grid);
 
 let visibleCellsSetCache: CellSet[] | null = null;
 let forwardVisibleCellsSetCache: CellSet[] | null = null;
