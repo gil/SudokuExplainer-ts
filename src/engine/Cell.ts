@@ -41,4 +41,14 @@ export class Cell {
     if (this === o) return true;
     return this.index === o.getIndex();
   }
+
+  static toFullString(...cells: Cell[]): string {
+    let result = 'Cell';
+    result += cells.length <= 1 ? ' ' : 's ';
+    for (let i = 0; i < cells.length; i++) {
+      if (i > 0) result += ',';
+      result += cells[i].toString();
+    }
+    return result;
+  }
 }

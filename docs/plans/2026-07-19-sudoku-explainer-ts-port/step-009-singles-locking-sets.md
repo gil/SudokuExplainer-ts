@@ -37,7 +37,7 @@ export function replayFixture(f: PuzzleFixture): void;
 - `toHtml` methods use template constants + `format` + `ValuesFormatter` helpers, port them now (they are cheap) so `explain()` works later without revisiting every class.
 - `equals`/`hashCode` pairs on hints: port `equals` only (overview rule 3).
 
-- [ ] **Action 1: write the replay harness**
+- [x] **Action 1: write the replay harness**
 
 `test/differential/replay.ts`:
 
@@ -196,16 +196,16 @@ describe('differential prefix replay', () => {
 });
 ```
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/differential/replay.test.ts`
 Expected: FAIL (producer modules not found).
 
-- [ ] **Action 3: port the twelve rule classes**
+- [x] **Action 3: port the twelve rule classes**
 
 Translate per the port notes. Suggested order inside the action: start with `HiddenSingle` and `NakedSingle` plus their hints, then run the replay test (many `easy` fixtures will fully pass already). Continue with `Locking` and both of its hint classes, and finish with `HiddenSet`/`NakedSet` plus their three hint classes, re-running the replay test after each pair. A mismatch report from `replayFixture` names the fixture, step index and field, diff against the Java source of the producer that emitted that step.
 
-- [ ] **Action 4: run all tests, expect pass**
+- [x] **Action 4: run all tests, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass. The replay suite must show zero mismatches (prefix-only verification is expected on harder fixtures).
@@ -213,7 +213,7 @@ Expected: all suites pass. The replay suite must show zero mismatches (prefix-on
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver/rules test/differential
@@ -225,5 +225,5 @@ git commit -m "feat: port singles, locking and set producers with differential r
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
