@@ -3,7 +3,7 @@
 # Java sources compiled with -encoding ISO-8859-1 (Latin-1), not UTF-8 (plan said UTF-8; the sources are Latin-1).
 # Generated tiers: easy/medium/hard seeds 1-30, fiendish 1-20, diabolical 1-10 (all landed, no skips).
 # Plus cover-* puzzles mined from extra diabolical seeds for technique coverage, and two hard-monster puzzles.
-# uncovered: Hidden Quad, Aligned Pair Exclusion, Nested
+# uncovered: Hidden Quad, Aligned Pair Exclusion, Nested Forcing Chains
 #   These stayed absent from every step's first hint after mining ~260 extra fiendish/diabolical
 #   seeds: hidden quads are preempted by simpler techniques, APE by chains, and Nested Forcing
 #   Chains need puzzles harder than ER ~11.6 (our monsters top out at Dynamic+). Step-016's

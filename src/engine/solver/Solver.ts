@@ -408,6 +408,11 @@ export class Solver {
       this.shortERtN = 'O';
       this.shortEPtN = 'O';
       this.shortEDtN = 'O';
+      // Reference-semantics guard (overview line 173): Java's getDifficulty has
+      // no validity check and never returns on under-constrained grids. The port
+      // only runs the rating loop when the puzzle is valid, so an invalid puzzle
+      // keeps the pre-loop defaults, matching the driver.
+      if (this.checkValidity() !== null) return;
       while (!this.grid.isSolved()) {
         if (hooks?.shouldCancel?.()) throw new CancelledError();
         let hint: Hint | null = null;

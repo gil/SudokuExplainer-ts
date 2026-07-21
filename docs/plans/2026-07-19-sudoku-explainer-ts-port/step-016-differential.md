@@ -16,7 +16,7 @@
 - Consumes: `Solver` (step-015) and the fixture/replay types from `test/differential/replay.ts` (step-009).
 - Produces: the acceptance-bar suite. From here on, any engine change must keep this suite green.
 
-- [ ] **Action 1: write the full differential test**
+- [x] **Action 1: write the full differential test**
 
 `test/differential/full.test.ts` replays every fixture through the REAL solver (not the harness producer list) and asserts complete paths and ratings:
 
@@ -96,12 +96,12 @@ describe('full differential', () => {
 
 Retire `test/differential/replay.test.ts` by deleting it, the prefix harness is superseded (keep `replay.ts` for its fixture loader/types).
 
-- [ ] **Action 2: run the suite**
+- [x] **Action 2: run the suite**
 
 Run: `pnpm vitest run test/differential/full.test.ts`
 Expected: PASS for the entire corpus. This is the spec's acceptance bar. Any mismatch is a port bug: locate the producer from the failing step's technique name and re-diff that class against its Java source. Do not weaken assertions to get to green.
 
-- [ ] **Action 3: write the coverage meta-test**
+- [x] **Action 3: write the coverage meta-test**
 
 `test/differential/coverage.test.ts`:
 
@@ -142,7 +142,7 @@ describe('every in-scope technique appears in the corpus', () => {
 
 Fill `NAME_MATCHERS` completely (one entry per in-scope technique) using the strings from `PORTED_TECHNIQUE_NAMES` in `test/differential/producers.ts`. If a technique fails coverage, first try mining more corpus puzzles (step-002 Action 7 workflow, then re-run fixtures + this suite). Only after that add it to the `# uncovered:` allowlist in `corpus.txt` with a reason next to it.
 
-- [ ] **Action 4: run everything including slow**
+- [x] **Action 4: run everything including slow**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -150,7 +150,7 @@ Expected: all suites pass.
 Run: `SLOW=1 pnpm vitest run test/differential/slow`
 Expected: PASS if the monster fixtures exist (this can run for a long time). If a monster was dropped in step-002, this suite is empty and passes trivially.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add test/differential
@@ -162,5 +162,5 @@ git commit -m "test: full differential suite, technique coverage meta-test, slow
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
