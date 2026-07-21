@@ -11,6 +11,8 @@ import { WXYZWing } from '../../src/engine/solver/rules/WXYZWing.js';
 import { VWXYZWing } from '../../src/engine/solver/rules/VWXYZWing.js';
 import { UVWXYZWing } from '../../src/engine/solver/rules/UVWXYZWing.js';
 import { TUVWXYZWing } from '../../src/engine/solver/rules/TUVWXYZWing.js';
+import { UniqueLoops } from '../../src/engine/solver/rules/unique/UniqueLoops.js';
+import { BivalueUniversalGrave } from '../../src/engine/solver/rules/unique/BivalueUniversalGrave.js';
 
 // Registration order from step-000-overview.md. Entries for producers that are
 // not ported yet are simply absent; steps 010-014 splice theirs in AT THE
@@ -34,13 +36,13 @@ export function currentProducers(): HintProducer[] {
     new StrongLinks(2),          // indirect 8
     new XYWing(false),           // indirect 9
     new XYWing(true),            // indirect 10
-    // indirect 11: UniqueLoops        (step-012)
+    new UniqueLoops(),           // indirect 11
     new NakedSet(4),             // indirect 12
     new Fisherman(4),            // indirect 13
     new HiddenSet(4, false),     // indirect 14
     new StrongLinks(3),          // indirect 15
     new WXYZWing(),              // indirect 16
-    // indirect 17: BivalueUniversalGrave (step-012)
+    new BivalueUniversalGrave(), // indirect 17
     new StrongLinks(4),          // indirect 18
     new VWXYZWing(),             // indirect 19
     // indirect 20: AlignedPairExclusion (step-013)
@@ -113,4 +115,15 @@ export const PORTED_TECHNIQUE_NAMES = new Set<string>([
   'VWXYZ-Wing 2412',
   'UVWXYZ-Wing 1314',
   'TUVWXYZ-Wing 2418',
+  // UniqueLoopHint names: "Unique <Rectangle|Loop> [<size>] type <n>". Exact
+  // strings the corpus exercises.
+  'Unique Rectangle type 1',
+  'Unique Rectangle type 2',
+  'Unique Rectangle type 3',
+  'Unique Rectangle type 4',
+  'Unique Loop 6 type 1',
+  'Unique Loop 6 type 2',
+  // BUG hint names.
+  'BUG type 1',
+  'BUG type 2',
 ]);

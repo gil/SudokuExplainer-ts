@@ -30,22 +30,22 @@ export class BivalueUniversalGrave implements IndirectHintProducer { constructor
 - `BivalueUniversalGrave` uses region potential positions heavily and produces four hint types plus possible chaining-style parents in Bug hints. Follow the Java `implements` lists per hint class.
 - Names/short names/ratings per hint type ("Unique Rectangle type 1", "Unique Loop type 2", BUG type ratings) come from the hint classes, transcribe exactly.
 
-- [ ] **Action 1: splice producers into the registry (test first)**
+- [x] **Action 1: splice producers into the registry (test first)**
 
 In `test/differential/producers.ts` add `UniqueLoops()` at indirect 11 and `BivalueUniversalGrave()` at indirect 17. Extend `PORTED_TECHNIQUE_NAMES` with every `getName()` string from the seven concrete hint classes (read them, the set includes rectangle and loop names per type plus the BUG names).
 
 Run: `pnpm vitest run test/differential/replay.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 2: port UniqueLoops and its five hint classes**
+- [x] **Action 2: port UniqueLoops and its five hint classes**
 
 Re-run the replay suite after the port compiles.
 
-- [ ] **Action 3: port BivalueUniversalGrave and its five hint classes**
+- [x] **Action 3: port BivalueUniversalGrave and its five hint classes**
 
 Re-run the replay suite.
 
-- [ ] **Action 4: run all tests, expect pass**
+- [x] **Action 4: run all tests, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -53,7 +53,7 @@ Expected: all suites pass.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver/rules/unique test/differential/producers.ts
@@ -65,5 +65,5 @@ git commit -m "feat: port UniqueLoops and BivalueUniversalGrave"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
