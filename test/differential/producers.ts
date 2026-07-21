@@ -1,73 +1,20 @@
 import type { HintProducer } from '../../src/engine/solver/HintProducer.js';
-import { HiddenSingle } from '../../src/engine/solver/rules/HiddenSingle.js';
-import { NakedSingle } from '../../src/engine/solver/rules/NakedSingle.js';
-import { Locking } from '../../src/engine/solver/rules/Locking.js';
-import { HiddenSet } from '../../src/engine/solver/rules/HiddenSet.js';
-import { NakedSet } from '../../src/engine/solver/rules/NakedSet.js';
-import { Fisherman } from '../../src/engine/solver/rules/Fisherman.js';
-import { StrongLinks } from '../../src/engine/solver/rules/StrongLinks.js';
-import { XYWing } from '../../src/engine/solver/rules/XYWing.js';
-import { WXYZWing } from '../../src/engine/solver/rules/WXYZWing.js';
-import { VWXYZWing } from '../../src/engine/solver/rules/VWXYZWing.js';
-import { UVWXYZWing } from '../../src/engine/solver/rules/UVWXYZWing.js';
-import { TUVWXYZWing } from '../../src/engine/solver/rules/TUVWXYZWing.js';
-import { UniqueLoops } from '../../src/engine/solver/rules/unique/UniqueLoops.js';
-import { BivalueUniversalGrave } from '../../src/engine/solver/rules/unique/BivalueUniversalGrave.js';
-import { AlignedPairExclusion } from '../../src/engine/solver/rules/AlignedPairExclusion.js';
-import { AlignedExclusion } from '../../src/engine/solver/rules/AlignedExclusion.js';
-import { Chaining } from '../../src/engine/solver/rules/chaining/Chaining.js';
+import { buildProducerTiers } from '../../src/engine/solver/Solver.js';
+import { defaultTechniques } from '../../src/engine/Options.js';
 
-// Registration order from step-000-overview.md. Entries for producers that are
-// not ported yet are simply absent; steps 010-014 splice theirs in AT THE
-// DOCUMENTED POSITION (keep the numbered comments).
+// The registration order now lives in exactly one place: Solver.buildProducerTiers
+// (the Solver constructor consumes it too). currentProducers flattens the tiers
+// in the same order getSingleHint runs them: direct, indirect, chaining1,
+// chaining2, advanced, experimental (validators/warnings excluded).
 export function currentProducers(): HintProducer[] {
+  const tiers = buildProducerTiers(defaultTechniques());
   return [
-    // direct tier
-    new HiddenSingle(),          // direct 1
-    new Locking(true),           // direct 2
-    new HiddenSet(2, true),      // direct 3
-    new NakedSingle(),           // direct 4
-    new HiddenSet(3, true),      // direct 5
-    // indirect tier
-    new Locking(false),          // indirect 1
-    new NakedSet(2),             // indirect 2
-    new Fisherman(2),            // indirect 3
-    new HiddenSet(2, false),     // indirect 4
-    new NakedSet(3),             // indirect 5
-    new Fisherman(3),            // indirect 6
-    new HiddenSet(3, false),     // indirect 7
-    new StrongLinks(2),          // indirect 8
-    new XYWing(false),           // indirect 9
-    new XYWing(true),            // indirect 10
-    new UniqueLoops(),           // indirect 11
-    new NakedSet(4),             // indirect 12
-    new Fisherman(4),            // indirect 13
-    new HiddenSet(4, false),     // indirect 14
-    new StrongLinks(3),          // indirect 15
-    new WXYZWing(),              // indirect 16
-    new BivalueUniversalGrave(), // indirect 17
-    new StrongLinks(4),          // indirect 18
-    new VWXYZWing(),             // indirect 19
-    new AlignedPairExclusion(),  // indirect 20
-    // indirect 21: StrongLinks(5) is DISABLED by default, never add it here
-    new UVWXYZWing(),            // indirect 22
-    // indirect 23: StrongLinks(6) is DISABLED by default, never add it here
-    // chaining tiers                  (step-014, except TUVWXYZWing in step-011
-    //   and AlignedExclusion(3) in step-013; keep chaining1 order: Chaining,
-    //   TUVWXYZWing, AlignedExclusion, Chaining x3, then chaining2/advanced/experimental)
-    new Chaining(false, false, false, 0, false, 0), // chaining1 1
-    new TUVWXYZWing(),           // chaining1 2
-    new AlignedExclusion(3),     // chaining1 3
-    new Chaining(false, true, true, 0, false, 0),   // chaining1 4
-    new Chaining(true, false, false, 0, false, 0),  // chaining1 5
-    new Chaining(true, true, false, 0, false, 0),   // chaining1 6
-    new Chaining(true, true, false, 1, false, 0),   // chaining2 1
-    new Chaining(true, true, false, 2, false, 0),   // advanced 1
-    new Chaining(true, true, false, 3, false, 0),   // advanced 2
-    new Chaining(true, true, false, 4, false, 0),   // experimental 1
-    new Chaining(true, true, false, 4, false, 1),   // experimental 2
-    new Chaining(true, true, false, 4, false, 2),   // experimental 3
-    new Chaining(true, true, false, 4, false, 3),   // experimental 4
+    ...tiers.direct,
+    ...tiers.indirect,
+    ...tiers.chaining1,
+    ...tiers.chaining2,
+    ...tiers.advanced,
+    ...tiers.experimental,
   ];
 }
 

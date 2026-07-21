@@ -71,7 +71,7 @@ export class BeyondSolverInternalError extends Error {}          // Java Unsuppo
 - `getBatchDifficulty` and `SmallestHintsAccumulator` are out of scope, skip.
 - `Analyser` wraps `solve()` into an `AnalysisInfo` warning hint, port both files (they are small). `AnalysisInfo.toHtml` uses the `Analysis` template from `src/templates/checks.ts`.
 
-- [ ] **Action 1: write the failing solver test**
+- [x] **Action 1: write the failing solver test**
 
 `test/unit/solver.test.ts`:
 
@@ -142,16 +142,16 @@ describe('Solver.solve / toNamedList', () => {
 });
 ```
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/solver.test.ts`
 Expected: FAIL (module not found).
 
-- [ ] **Action 3: port Solver.ts, then Analyser and AnalysisInfo**
+- [x] **Action 3: port Solver.ts, then Analyser and AnalysisInfo**
 
 Per the port notes. While here, switch `test/differential/producers.ts` to delegate: `currentProducers()` now returns the producer list of a `new Solver(grid)` equivalent. Simplest faithful form: export a `buildProducerTiers(techniques)` helper FROM `Solver.ts` (the constructor uses it), and have both the Solver and the replay harness consume it so the registration order lives in exactly one place.
 
-- [ ] **Action 4: run everything, expect pass**
+- [x] **Action 4: run everything, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass, including the whole replay suite now backed by the real registration list.
@@ -159,7 +159,7 @@ Expected: all suites pass, including the whole replay suite now backed by the re
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver test/unit/solver.test.ts test/differential/producers.ts
@@ -171,5 +171,5 @@ git commit -m "feat: port Solver rating loop, Analyser and technique registratio
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
