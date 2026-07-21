@@ -65,6 +65,10 @@ export interface ProducerTiers {
   chaining2: IndirectHintProducer[];
   advanced: IndirectHintProducer[];
   experimental: IndirectHintProducer[];
+  // Reverse lookup from a registered producer instance to the technique it was
+  // registered under, so a hint's producer (hint.getRule()) can be mapped back
+  // to its SolvingTechnique by identity (the public API needs it).
+  techniqueByProducer: Map<HintProducer, SolvingTechnique>;
 }
 
 // Registration order of the Java Solver constructor (revisedRating==0 branch),
@@ -78,12 +82,19 @@ export function buildProducerTiers(techniques: Set<SolvingTechnique>): ProducerT
   const chaining2: IndirectHintProducer[] = [];
   const advanced: IndirectHintProducer[] = [];
   const experimental: IndirectHintProducer[] = [];
+  const techniqueByProducer = new Map<HintProducer, SolvingTechnique>();
 
   const addD = (t: SolvingTechnique, p: HintProducer): void => {
-    if (techniques.has(t)) direct.push(p);
+    if (techniques.has(t)) {
+      direct.push(p);
+      techniqueByProducer.set(p, t);
+    }
   };
   const addI = (t: SolvingTechnique, coll: IndirectHintProducer[], p: IndirectHintProducer): void => {
-    if (techniques.has(t)) coll.push(p);
+    if (techniques.has(t)) {
+      coll.push(p);
+      techniqueByProducer.set(p, t);
+    }
   };
 
   addD(SolvingTechnique.HiddenSingle, new HiddenSingle());
@@ -140,7 +151,17 @@ export function buildProducerTiers(techniques: Set<SolvingTechnique>): ProducerT
     new BruteForceAnalysis(false),
   ];
 
-  return { validators, warnings, direct, indirect, chaining1, chaining2, advanced, experimental };
+  return {
+    validators,
+    warnings,
+    direct,
+    indirect,
+    chaining1,
+    chaining2,
+    advanced,
+    experimental,
+    techniqueByProducer,
+  };
 }
 
 export class Solver {
@@ -166,10 +187,12 @@ export class Solver {
   private experimentalHintProducers: IndirectHintProducer[];
 
   private isUsingAdvanced = false;
+  private readonly techniqueByProducer: Map<HintProducer, SolvingTechnique>;
 
   constructor(grid: Grid, techniques: Set<SolvingTechnique> = defaultTechniques()) {
     this.grid = grid;
     const tiers = buildProducerTiers(techniques);
+    this.techniqueByProducer = tiers.techniqueByProducer;
     this.validatorHintProducers = tiers.validators;
     this.warningHintProducers = tiers.warnings;
     this.directHintProducers = tiers.direct;
@@ -182,6 +205,12 @@ export class Solver {
 
   getGrid(): Grid {
     return this.grid;
+  }
+
+  // The technique a hint's producer was registered under, or undefined for
+  // validator/warning producers (which carry no SolvingTechnique).
+  getTechnique(producer: HintProducer): SolvingTechnique | undefined {
+    return this.techniqueByProducer.get(producer);
   }
 
   rebuildPotentialValues(): void {

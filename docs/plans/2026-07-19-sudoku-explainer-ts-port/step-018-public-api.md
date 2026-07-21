@@ -79,7 +79,7 @@ export function toPublicHint(hint: EngineHint, grid: Grid): Hint;
 // a lazily created default engine.
 ```
 
-- [ ] **Action 1: write the failing API test**
+- [x] **Action 1: write the failing API test**
 
 `test/unit/api.test.ts`:
 
@@ -170,16 +170,16 @@ describe('generate', () => {
 
 Adjust the `checkValidity` kind expectation if the fixture's warning class maps to a different spec kind (the mapping table in `src/api/engine.ts` is the source of truth, and it must be consistent with what `invalid-double` actually triggers).
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/api.test.ts`
 Expected: FAIL (exports missing).
 
-- [ ] **Action 3: write the API layer**
+- [x] **Action 3: write the API layer**
 
 Build the five `src/api/` files per the responsibilities block, then rewrite `src/index.ts` to export the public surface (delete the placeholder `VERSION` or keep it exported alongside). Type declarations come verbatim from the spec.
 
-- [ ] **Action 4: run everything, expect pass**
+- [x] **Action 4: run everything, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -196,11 +196,11 @@ node -e "import('./dist/index.js').then(m => console.log(Object.keys(m).sort().j
 
 Expected: the spec's exports are all present (createEngine, rate, generate, solvePath, getHint, solve, checkValidity, error classes, SolvingTechnique).
 
-- [ ] **Action 5: write README.md**
+- [x] **Action 5: write README.md**
 
 Short: what the library is (SukakuExplainer port, vanilla Sudoku, LGPL-2.1), install, one `rate`/`getHint`/`generate` example each, a fidelity note pointing at the differential suite, and the Node >= 20 + ESM-only requirement.
 
-- [ ] **Action 6: commit**
+- [x] **Action 6: commit**
 
 ```bash
 git add src README.md
@@ -212,5 +212,5 @@ git commit -m "feat: public API (rate, solvePath, hints, generate) and packaging
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
