@@ -46,25 +46,25 @@ Constructor parameter names above are provisional. Read the actual parameter nam
 - Nested levels: `Chaining` at level >= 2 builds inner solver machinery. Follow the Java code precisely, including which producers the nested solver instantiates. If the Java nested path constructs a `Solver`, port that part after checking step-015 status, or inline the producer list construction the same way Java does it (read the code first, then decide, and keep it traceable).
 - `getRuleParents` implementations on the hint classes matter for nested chains, port them.
 
-- [ ] **Action 1: splice chaining producers into the registry (test first)**
+- [x] **Action 1: splice chaining producers into the registry (test first)**
 
 In `test/differential/producers.ts` complete the chaining tiers by copying the exact constructor tuples and ordering from the overview's registration table (chaining1 through experimental, with `TUVWXYZWing()` and `AlignedExclusion(3)` staying at chaining1 positions 2 and 3). Extend `PORTED_TECHNIQUE_NAMES` with every chain hint name (read the `getName()` implementations, names vary by chain kind and nesting, and the corpus scan from `scripts/check-coverage.ts` lists the strings that actually occur).
 
 Run: `pnpm vitest run test/differential/replay.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 2: port FullChain, ChainingHint and the five concrete hint classes**
+- [x] **Action 2: port FullChain, ChainingHint and the five concrete hint classes**
 
 These compile without the producer (they reference `Chaining` only by type where Java does, use `import type` to break cycles).
 
-- [ ] **Action 3: port Chaining.java**
+- [x] **Action 3: port Chaining.java**
 
 Work top to bottom, method by method. After it compiles, run the replay suite WITHOUT the slow fixtures first:
 
 Run: `pnpm vitest run test/differential/replay.test.ts`
 Expected: PASS. Fixtures with chaining steps (diabolical corpus entries) now replay to completion. Expect several minutes of runtime.
 
-- [ ] **Action 4: run everything, expect pass**
+- [x] **Action 4: run everything, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -72,7 +72,7 @@ Expected: all suites pass.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/solver/rules/chaining test/differential/producers.ts
@@ -84,5 +84,5 @@ git commit -m "feat: port chaining engine and chain hint classes"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol

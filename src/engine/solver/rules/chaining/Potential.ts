@@ -1,8 +1,6 @@
 import type { Cell } from '../../../Cell.js';
 import type { Grid } from '../../../Grid.js';
-
-// ChainingHint is ported in step-014; typed loosely until then.
-type ChainingHint = unknown;
+import type { ChainingHint } from './ChainingHint.js';
 
 // Ported from diuf.sudoku.solver.rules.chaining.Potential. A (Cell, value,
 // on/off) triplet, optionally with parent potentials and an explanation.
@@ -71,6 +69,12 @@ export class Potential {
     if (!(o instanceof Potential)) return false;
     const other = o;
     return this.cell.equals(other.cell) && this.value === other.value && this.isOn === other.isOn;
+  }
+
+  // Primitive key consistent with equals (cell, value, isOn), used by LinkedSet
+  // for O(1) membership. Not a port of Java hashCode (which is unused here).
+  hashKey(): number {
+    return this.cell.getIndex() * 20 + this.value * 2 + (this.isOn ? 1 : 0);
   }
 
   getAncestorCount(): number {

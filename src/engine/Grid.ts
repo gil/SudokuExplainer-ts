@@ -296,6 +296,11 @@ export abstract class Region {
     return cells[this.regionCells[index]];
   }
 
+  // The region's nine cell indices, for hot loops that avoid Cell objects.
+  getRegionCells(): number[] {
+    return this.regionCells;
+  }
+
   indexOf(cell: Cell): number {
     return regionCellIndex[cell.getIndex()][this.getRegionTypeIndex()];
   }
@@ -518,6 +523,12 @@ export class Grid {
 
   hasCellPotentialValue(cellIndex: number, value: number): boolean {
     return this.cellPotentialValues[cellIndex].get(value);
+  }
+
+  // Raw potential-value bitmask for a cell (bit v set <=> value v is possible).
+  // Fast path for hot chaining loops; equivalent to getCellPotentialValues().bits.
+  cellPotentialBits(cellIndex: number): number {
+    return this.cellPotentialValues[cellIndex].bits;
   }
 
   addCellPotentialValue(cellIndex: number, value: number): void {

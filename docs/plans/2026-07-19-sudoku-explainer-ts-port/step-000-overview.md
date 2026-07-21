@@ -214,7 +214,7 @@ This is sound because Java picked each step's hint as the first in registration 
 - [x] `step-011-wings.md`: XY/XYZ/WXYZ/VWXYZ/UVWXYZ/TUVWXYZ wings with their hints
 - [x] `step-012-unique-bug.md`: `UniqueLoops` and `BivalueUniversalGrave` with their hints
 - [x] `step-013-aligned-exclusion.md`: APE + ATE with their hint class
-- [ ] `step-014-chaining.md`: `Chaining` + chain hint classes
+- [x] `step-014-chaining.md`: `Chaining` + chain hint classes
 - [ ] `step-015-solver.md`: `Solver` and `Analyser`, the rating loop, technique enable/disable
 - [ ] `step-016-differential.md`: full differential suite with the coverage meta-test and the slow suite
 - [ ] `step-017-generator.md`: `Point`, `Symmetry` and `Generator` with seeded determinism tests

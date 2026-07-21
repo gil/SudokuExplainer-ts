@@ -9,6 +9,8 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
     exclude,
-    testTimeout: 120_000,
+    // Diabolical corpus puzzles replay nested (level 3-4) dynamic forcing
+    // chains, which take a few minutes each to reproduce faithfully.
+    testTimeout: 300_000,
   },
 });

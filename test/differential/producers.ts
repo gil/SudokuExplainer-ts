@@ -15,6 +15,7 @@ import { UniqueLoops } from '../../src/engine/solver/rules/unique/UniqueLoops.js
 import { BivalueUniversalGrave } from '../../src/engine/solver/rules/unique/BivalueUniversalGrave.js';
 import { AlignedPairExclusion } from '../../src/engine/solver/rules/AlignedPairExclusion.js';
 import { AlignedExclusion } from '../../src/engine/solver/rules/AlignedExclusion.js';
+import { Chaining } from '../../src/engine/solver/rules/chaining/Chaining.js';
 
 // Registration order from step-000-overview.md. Entries for producers that are
 // not ported yet are simply absent; steps 010-014 splice theirs in AT THE
@@ -54,8 +55,19 @@ export function currentProducers(): HintProducer[] {
     // chaining tiers                  (step-014, except TUVWXYZWing in step-011
     //   and AlignedExclusion(3) in step-013; keep chaining1 order: Chaining,
     //   TUVWXYZWing, AlignedExclusion, Chaining x3, then chaining2/advanced/experimental)
+    new Chaining(false, false, false, 0, false, 0), // chaining1 1
     new TUVWXYZWing(),           // chaining1 2
     new AlignedExclusion(3),     // chaining1 3
+    new Chaining(false, true, true, 0, false, 0),   // chaining1 4
+    new Chaining(true, false, false, 0, false, 0),  // chaining1 5
+    new Chaining(true, true, false, 0, false, 0),   // chaining1 6
+    new Chaining(true, true, false, 1, false, 0),   // chaining2 1
+    new Chaining(true, true, false, 2, false, 0),   // advanced 1
+    new Chaining(true, true, false, 3, false, 0),   // advanced 2
+    new Chaining(true, true, false, 4, false, 0),   // experimental 1
+    new Chaining(true, true, false, 4, false, 1),   // experimental 2
+    new Chaining(true, true, false, 4, false, 2),   // experimental 3
+    new Chaining(true, true, false, 4, false, 3),   // experimental 4
   ];
 }
 
@@ -129,4 +141,25 @@ export const PORTED_TECHNIQUE_NAMES = new Set<string>([
   // BUG hint names.
   'BUG type 1',
   'BUG type 2',
+  // Chaining hint names (getName() results) that the corpus exercises.
+  // CycleHint:
+  'Bidirectional Cycle',
+  'Bidirectional Y-Cycle',
+  // ForcingChainHint:
+  'Forcing Chain',
+  // BinaryChainingHint (Nishio / dynamic contradiction):
+  'Nishio Forcing Chains',
+  'Dynamic Contradiction Forcing Chains',
+  'Dynamic Contradiction Forcing Chains (+)',
+  'Dynamic Contradiction Forcing Chains (+ Forcing Chains)',
+  'Dynamic Contradiction Forcing Chains (+ Multiple Forcing Chains)',
+  // CellChainingHint:
+  'Cell Forcing Chains',
+  'Dynamic Cell Forcing Chains',
+  'Dynamic Cell Forcing Chains (+)',
+  // RegionChainingHint:
+  'Region Forcing Chains',
+  'Dynamic Region Forcing Chains',
+  'Dynamic Region Forcing Chains (+)',
+  'Dynamic Region Forcing Chains (+ Forcing Chains)',
 ]);
