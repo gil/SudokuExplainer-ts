@@ -57,7 +57,7 @@ export class Generator {
 - `shouldCancel` is checked where Java checks `isInterrupted` (after generating and after rating), returning `null`.
 - The `Solver` used for rating inside the loop is built with default techniques, mirroring the driver.
 
-- [ ] **Action 1: write the failing determinism test**
+- [x] **Action 1: write the failing determinism test**
 
 `test/unit/generator.test.ts`:
 
@@ -104,16 +104,16 @@ describe('Generator determinism vs Java', () => {
 });
 ```
 
-- [ ] **Action 2: run it, expect failure**
+- [x] **Action 2: run it, expect failure**
 
 Run: `pnpm vitest run test/unit/generator.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 3: port the three files**
+- [x] **Action 3: port the three files**
 
 Per the port notes. A determinism mismatch means a `rnd.nextInt` call site differs in count or order from Java. Diff `generateOne` against `Generator.java` call-by-call, then check `solveRandom` in `BruteForceAnalysis` the same way.
 
-- [ ] **Action 4: run everything, expect pass**
+- [x] **Action 4: run everything, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass. The `hard-s1` determinism case takes the longest (it rates every attempt), still well under the 120 s timeout.
@@ -121,7 +121,7 @@ Expected: all suites pass. The `hard-s1` determinism case takes the longest (it 
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 5: commit**
+- [x] **Action 5: commit**
 
 ```bash
 git add src/engine/generator test/unit/generator.test.ts
@@ -133,5 +133,5 @@ git commit -m "feat: port Generator and Symmetry with seeded determinism"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Check this step off in the Steps list of `step-000-overview.md`
 - [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol

@@ -217,7 +217,7 @@ This is sound because Java picked each step's hint as the first in registration 
 - [x] `step-014-chaining.md`: `Chaining` + chain hint classes
 - [x] `step-015-solver.md`: `Solver` and `Analyser`, the rating loop, technique enable/disable
 - [x] `step-016-differential.md`: full differential suite with the coverage meta-test and the slow suite
-- [ ] `step-017-generator.md`: `Point`, `Symmetry` and `Generator` with seeded determinism tests
+- [x] `step-017-generator.md`: `Point`, `Symmetry` and `Generator` with seeded determinism tests
 - [ ] `step-018-public-api.md`: `src/api/` and `src/index.ts`, errors, hooks, build + package check
 
 Ordering: steps 001 through 009 are strictly sequential. Steps 010-013 can run in any order after 009 (each extends the replay registry independently, and conflicts in `producers.ts` are trivial to merge). Step 014 needs 009. Step 015 needs 010-014. Step 016 needs 015. Step 017 needs 015. Step 018 needs 015 through 017. Check each step off here when done.
