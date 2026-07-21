@@ -29,18 +29,18 @@ export class AlignedExclusionHint extends IndirectHint /* + Rule + HasParentPote
 - The combination enumeration order (cell pair/triplet selection and the candidate-combination vetting loop) decides which exclusion is found first, transcribe loops verbatim.
 - `AlignedExclusionHint.getName()` depends on degree ("Aligned Pair Exclusion", "Aligned Triplet Exclusion"), and its `equals` matters for accumulator dedup in `getAllHints`, port both.
 
-- [ ] **Action 1: splice producers into the registry (test first)**
+- [x] **Action 1: splice producers into the registry (test first)**
 
 In `test/differential/producers.ts` add `AlignedPairExclusion()` at indirect 20 and `AlignedExclusion(3)` at chaining1 position 3 (after `TUVWXYZWing` if step-011 already ran, otherwise leave the documented comment slots intact). Extend `PORTED_TECHNIQUE_NAMES` with the two names above after confirming them in `AlignedExclusionHint.java`.
 
 Run: `pnpm vitest run test/differential/replay.test.ts`
 Expected: FAIL (modules not found).
 
-- [ ] **Action 2: port the three classes**
+- [x] **Action 2: port the three classes**
 
 Re-run the replay suite once they compile.
 
-- [ ] **Action 3: run all tests, expect pass**
+- [x] **Action 3: run all tests, expect pass**
 
 Run: `pnpm test`
 Expected: all suites pass.
@@ -48,7 +48,7 @@ Expected: all suites pass.
 Run: `pnpm typecheck`
 Expected: exits 0.
 
-- [ ] **Action 4: commit**
+- [x] **Action 4: commit**
 
 ```bash
 git add src/engine/solver/rules test/differential/producers.ts
@@ -60,5 +60,5 @@ git commit -m "feat: port aligned pair/triplet exclusion"
 
 ## Step completion
 
-- [ ] Check this step off in the Steps list of `step-000-overview.md`
-- [ ] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol
+- [x] Check this step off in the Steps list of `step-000-overview.md`
+- [x] Only if something could not be finished: record it in `step-999-leftovers.md` per the overview's Leftovers Protocol (nothing deferred)

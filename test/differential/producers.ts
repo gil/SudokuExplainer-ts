@@ -13,6 +13,8 @@ import { UVWXYZWing } from '../../src/engine/solver/rules/UVWXYZWing.js';
 import { TUVWXYZWing } from '../../src/engine/solver/rules/TUVWXYZWing.js';
 import { UniqueLoops } from '../../src/engine/solver/rules/unique/UniqueLoops.js';
 import { BivalueUniversalGrave } from '../../src/engine/solver/rules/unique/BivalueUniversalGrave.js';
+import { AlignedPairExclusion } from '../../src/engine/solver/rules/AlignedPairExclusion.js';
+import { AlignedExclusion } from '../../src/engine/solver/rules/AlignedExclusion.js';
 
 // Registration order from step-000-overview.md. Entries for producers that are
 // not ported yet are simply absent; steps 010-014 splice theirs in AT THE
@@ -45,7 +47,7 @@ export function currentProducers(): HintProducer[] {
     new BivalueUniversalGrave(), // indirect 17
     new StrongLinks(4),          // indirect 18
     new VWXYZWing(),             // indirect 19
-    // indirect 20: AlignedPairExclusion (step-013)
+    new AlignedPairExclusion(),  // indirect 20
     // indirect 21: StrongLinks(5) is DISABLED by default, never add it here
     new UVWXYZWing(),            // indirect 22
     // indirect 23: StrongLinks(6) is DISABLED by default, never add it here
@@ -53,6 +55,7 @@ export function currentProducers(): HintProducer[] {
     //   and AlignedExclusion(3) in step-013; keep chaining1 order: Chaining,
     //   TUVWXYZWing, AlignedExclusion, Chaining x3, then chaining2/advanced/experimental)
     new TUVWXYZWing(),           // chaining1 2
+    new AlignedExclusion(3),     // chaining1 3
   ];
 }
 
