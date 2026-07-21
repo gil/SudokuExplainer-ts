@@ -44,6 +44,22 @@ export class Cell {
     return gridRef!.visibleCellsSet[this.index];
   }
 
+  canSeeCell(other: Cell): boolean {
+    return gridRef!.visibleCellsSet[this.index].contains(other);
+  }
+
+  getForwardVisibleCells(): CellSet {
+    return gridRef!.forwardVisibleCellsSet[this.index];
+  }
+
+  getVisibleCellIndexes(): number[] {
+    return gridRef!.visibleCellIndex[this.index];
+  }
+
+  getForwardVisibleCellIndexes(): number[] {
+    return gridRef!.forwardVisibleCellIndex[this.index];
+  }
+
   toFullString(): string {
     return 'Cell ' + cellName(this.getX(), this.getY());
   }

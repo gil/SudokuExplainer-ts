@@ -6,6 +6,11 @@ import { HiddenSet } from '../../src/engine/solver/rules/HiddenSet.js';
 import { NakedSet } from '../../src/engine/solver/rules/NakedSet.js';
 import { Fisherman } from '../../src/engine/solver/rules/Fisherman.js';
 import { StrongLinks } from '../../src/engine/solver/rules/StrongLinks.js';
+import { XYWing } from '../../src/engine/solver/rules/XYWing.js';
+import { WXYZWing } from '../../src/engine/solver/rules/WXYZWing.js';
+import { VWXYZWing } from '../../src/engine/solver/rules/VWXYZWing.js';
+import { UVWXYZWing } from '../../src/engine/solver/rules/UVWXYZWing.js';
+import { TUVWXYZWing } from '../../src/engine/solver/rules/TUVWXYZWing.js';
 
 // Registration order from step-000-overview.md. Entries for producers that are
 // not ported yet are simply absent; steps 010-014 splice theirs in AT THE
@@ -27,23 +32,25 @@ export function currentProducers(): HintProducer[] {
     new Fisherman(3),            // indirect 6
     new HiddenSet(3, false),     // indirect 7
     new StrongLinks(2),          // indirect 8
-    // indirect 9-10: XYWing           (step-011)
+    new XYWing(false),           // indirect 9
+    new XYWing(true),            // indirect 10
     // indirect 11: UniqueLoops        (step-012)
     new NakedSet(4),             // indirect 12
     new Fisherman(4),            // indirect 13
     new HiddenSet(4, false),     // indirect 14
     new StrongLinks(3),          // indirect 15
-    // indirect 16: WXYZWing           (step-011)
+    new WXYZWing(),              // indirect 16
     // indirect 17: BivalueUniversalGrave (step-012)
     new StrongLinks(4),          // indirect 18
-    // indirect 19: VWXYZWing          (step-011)
+    new VWXYZWing(),             // indirect 19
     // indirect 20: AlignedPairExclusion (step-013)
     // indirect 21: StrongLinks(5) is DISABLED by default, never add it here
-    // indirect 22: UVWXYZWing         (step-011)
+    new UVWXYZWing(),            // indirect 22
     // indirect 23: StrongLinks(6) is DISABLED by default, never add it here
     // chaining tiers                  (step-014, except TUVWXYZWing in step-011
     //   and AlignedExclusion(3) in step-013; keep chaining1 order: Chaining,
     //   TUVWXYZWing, AlignedExclusion, Chaining x3, then chaining2/advanced/experimental)
+    new TUVWXYZWing(),           // chaining1 2
   ];
 }
 
@@ -86,4 +93,24 @@ export const PORTED_TECHNIQUE_NAMES = new Set<string>([
   '(3 Strong Links) X-Loop 0011',
   '(3 Strong Links) X-Loop 0111',
   'Grouped 4 Strong links 40001',
+  // XYWingHint names
+  'XY-Wing',
+  'XYZ-Wing',
+  // Big-wing names: getName() is "<prefix>-Wing " + suffix, suffix =
+  // (doubleLink?2:1) + biggestCardinality + wingSize. These are the exact
+  // strings the corpus exercises.
+  'WXYZ-Wing 126',
+  'WXYZ-Wing 137',
+  'WXYZ-Wing 138',
+  'WXYZ-Wing 139',
+  'WXYZ-Wing 237',
+  'VWXYZ-Wing 128',
+  'VWXYZ-Wing 139',
+  'VWXYZ-Wing 1310',
+  'VWXYZ-Wing 1311',
+  'VWXYZ-Wing 1411',
+  'VWXYZ-Wing 2311',
+  'VWXYZ-Wing 2412',
+  'UVWXYZ-Wing 1314',
+  'TUVWXYZ-Wing 2418',
 ]);
