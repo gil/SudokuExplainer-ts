@@ -75,8 +75,24 @@ default engine.
 ## Fidelity
 
 Correctness is enforced by a differential test suite: a Java reference driver
-emits fixtures for a committed puzzle corpus, and the port asserts exact equality
-of ratings and every recorded field of every solve step.
+emits fixtures for committed puzzle corpora, and the port asserts exact equality
+of ratings and every recorded field of every solve step. The corpora are 133
+seeded generator puzzles, 1000 grids and 614 pencilmark states derived from
+HoDoKu's regression library, and a per-flag matrix.
+
+Both 81-character givens and 729-character pencilmark (Sukaku) grids are
+accepted, and the `Settings` flags that serate exposes are settable per engine:
+
+```ts
+const engine = createEngine({ settings: { revisedRating: 1, FCPlus: 2 } });
+```
+
+`revisedRating`, `isBringBackSE121`, `batchSolving`, `FCPlus`, `islkSudokuBUG`
+and `islkSudokuURUL` each have their own fixture set, so they are held to the
+Java engine exactly rather than assumed.
+
+Sudoku *variants* (X, Windoku, Disjoint Groups, NC, …) are out of scope; this is
+a vanilla 9×9 engine.
 
 ## License
 

@@ -3,11 +3,16 @@
 # Java sources compiled with -encoding ISO-8859-1 (Latin-1), not UTF-8 (plan said UTF-8; the sources are Latin-1).
 # Generated tiers: easy/medium/hard seeds 1-30, fiendish 1-20, diabolical 1-10 (all landed, no skips).
 # Plus cover-* puzzles mined from extra diabolical seeds for technique coverage, and two hard-monster puzzles.
-# uncovered: Hidden Quad, Aligned Pair Exclusion, Nested Forcing Chains
-#   These stayed absent from every step's first hint after mining ~260 extra fiendish/diabolical
-#   seeds: hidden quads are preempted by simpler techniques, APE by chains, and Nested Forcing
-#   Chains need puzzles harder than ER ~11.6 (our monsters top out at Dynamic+). Step-016's
-#   coverage meta-test reads this "uncovered:" line as its allowlist.
+# uncovered: Aligned Pair Exclusion, Nested Forcing Chains
+#   The coverage meta-test reads this "uncovered:" line as its allowlist, unioned across every
+#   corpus header. It now sees 158 distinct technique names over this corpus plus the two reglib
+#   corpora (1000 grids and 614 pencilmark states).
+#   Hidden Quad was uncovered here and is now hit by the reglib pencilmark corpus, where a
+#   hand-built candidate state stops simpler techniques from preempting it. Aligned Triplet
+#   Exclusion is covered the same way.
+#   Aligned Pair Exclusion is registered after the wings and BUG, so a chain or wing always fires
+#   first; no puzzle in ~1750 reaches it. Nested Forcing Chains need ER above ~11.6, and reglib is
+#   not aimed that high either, so our monsters (Dynamic+) still top out below it.
 #
 # generated puzzles
 easy-s1 .2.....7...4...8...9.628.4.93..5..272.53.49.864..8..13.8.493.5...9...1...7.....3.

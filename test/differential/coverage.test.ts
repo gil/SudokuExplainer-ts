@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SolvingTechnique } from '../../src/engine/SolvingTechnique.js';
 import { loadFixtures } from './replay.js';
@@ -61,14 +61,24 @@ const NAME_MATCHERS: Partial<Record<SolvingTechnique, (n: string) => boolean>> =
   [SolvingTechnique.NestedForcingChain]: (n) => n.includes('Nested'),
 };
 
-const allowlist = readFileSync('test/fixtures/corpus.txt', 'utf8')
-  .split('\n')
-  .filter((l) => l.startsWith('# uncovered:'))
-  .flatMap((l) => l.replace('# uncovered:', '').split(',').map((s) => s.trim()));
+// Every corpus contributes coverage, and any of them may carry an
+// "# uncovered:" line justifying a technique that still cannot be reached.
+const CORPUS_HEADERS = ['test/fixtures/corpus.txt', 'test/fixtures/reglib-pm-corpus.txt'];
+const FIXTURE_DIRS = ['test/fixtures/puzzles', 'test/fixtures/reglib-pm', 'test/fixtures/reglib'];
+
+const allowlist = CORPUS_HEADERS.filter((p) => existsSync(p)).flatMap((p) =>
+  readFileSync(p, 'utf8')
+    .split('\n')
+    .filter((l) => l.startsWith('# uncovered:'))
+    .flatMap((l) => l.replace('# uncovered:', '').split(',').map((s) => s.trim())),
+);
 
 describe('every in-scope technique appears in the corpus', () => {
   const seen = new Set<string>();
-  for (const f of loadFixtures()) for (const s of f.steps) seen.add(s.technique);
+  for (const dir of FIXTURE_DIRS) {
+    if (!existsSync(dir)) continue;
+    for (const f of loadFixtures(dir)) for (const s of f.steps) seen.add(s.technique);
+  }
   for (const t of Object.values(SolvingTechnique)) {
     if (t === SolvingTechnique.FiveStrongLinks || t === SolvingTechnique.SixStrongLinks) continue; // disabled by default
     if (allowlist.includes(t)) continue;
