@@ -75,8 +75,35 @@ public class Driver {
         }
     }
 
+    // ---------- settings ----------
+    // Applies "k=v,k=v" to the Settings singleton, matching the serate flags
+    // that change solving behaviour. Keys are the Settings setter names.
+    static void applySettings(String spec) {
+        if (spec == null || spec.isEmpty()) return;
+        Settings s = Settings.getInstance();
+        for (String pair : spec.split(",")) {
+            String[] kv = pair.split("=", 2);
+            String k = kv[0].trim(), v = kv[1].trim();
+            switch (k) {
+                case "revisedRating": s.setRevisedRating(Integer.parseInt(v)); break;
+                case "batchSolving": s.setBatchSolving(Integer.parseInt(v)); break;
+                case "FCPlus": s.setFCPlus(Integer.parseInt(v)); break;
+                case "islkSudokuBUG": s.setlkSudokuBUG(Boolean.parseBoolean(v)); break;
+                case "islkSudokuURUL": s.setlkSudokuURUL(Boolean.parseBoolean(v)); break;
+                case "isBringBackSE121":
+                    s.setBringBackSE121(Boolean.parseBoolean(v));
+                    if (Boolean.parseBoolean(v)) s.Settings_BBSE121();
+                    break;
+                default: throw new IllegalArgumentException("unknown setting: " + k);
+            }
+        }
+    }
+
     // ---------- modes ----------
-    static void rate(String corpusPath, String outDir) throws IOException {
+    // timingsPath is optional. Timings deliberately do NOT go into the fixture
+    // JSON: a wall-clock field would churn every fixture on each regeneration.
+    static void rate(String corpusPath, String outDir, String timingsPath) throws IOException {
+        StringBuilder timings = new StringBuilder();
         try (BufferedReader r = new BufferedReader(new FileReader(corpusPath))) {
             String line;
             while ((line = r.readLine()) != null) {
@@ -85,7 +112,14 @@ public class Driver {
                 String[] parts = line.split("\\s+");
                 String id = parts[0], puzzle = parts[1];
                 System.out.println("rating " + id);
+                long t0 = System.nanoTime();
                 ratePuzzle(id, puzzle, outDir);
+                timings.append(id).append('\t').append((System.nanoTime() - t0) / 1000000L).append('\n');
+            }
+        }
+        if (timingsPath != null) {
+            try (PrintWriter w = new PrintWriter(new FileWriter(timingsPath))) {
+                w.print(timings);
             }
         }
     }
@@ -240,8 +274,16 @@ public class Driver {
     }
 
     public static void main(String[] args) throws Exception {
+        // Optional trailing args for `rate`: a timings path, and --set k=v,k=v
+        // applied to the Settings singleton before any puzzle is rated.
+        String timingsPath = null, settingsSpec = null;
+        for (int i = 3; i < args.length; i++) {
+            if (args[i].equals("--set")) settingsSpec = args[++i];
+            else timingsPath = args[i];
+        }
+        applySettings(settingsSpec);
         switch (args[0]) {
-            case "rate": rate(args[1], args[2]); break;
+            case "rate": rate(args[1], args[2], timingsPath); break;
             case "random": random(args[1]); break;
             case "generate": generate(Long.parseLong(args[1]),
                 Double.parseDouble(args[2]), Double.parseDouble(args[3]), args[4]); break;
