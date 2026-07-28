@@ -1,0 +1,2 @@
+# Puzzles whose Java rating exceeded the 5000ms slow threshold.
+# Derived from the timings artifact by generate-reglib-fixtures.ts.

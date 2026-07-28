@@ -2,3 +2,6 @@ node_modules/
 dist/
 scripts/java-driver/out/
 SukakuExplainer
+
+# Driver timing artifacts: build inputs for the slow-tier split, not fixtures.
+test/fixtures/*-timings.tsv

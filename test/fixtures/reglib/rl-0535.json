@@ -1,0 +1,31 @@
+{
+  "id": "rl-0535",
+  "puzzle": "9571..4823..298.57.8275493..793..8.52.89.537.53.8.72694156..798796481523823579...",
+  "validity": null,
+  "solution": "957136482364298157182754936679312845248965371531847269415623798796481523823579614",
+  "rating": {"er":4.1,"ep":4.1,"ed":4.1,"erTechnique":"2 Strong links 001","epTechnique":"2 Strong links 001","edTechnique":"2 Strong links 001","erShort":"2SL001","epShort":"2SL001","edShort":"2SL001"},
+  "steps": [
+    {"gridBefore":"9571..4823..298.57.8275493..793..8.52.89.537.53.8.72694156..798796481523823579...","technique":"2 Strong links 001","shortName":"2SL001","rating":4.1,"cell":-1,"value":0,"removals":[{"cell":27,"values":[1]}],"toString":"2 Strong links 001: Cell r4c8,r5c9,r3c9,r3c1 on value 1"},
+    {"gridBefore":"9571..4823..298.57.8275493..793..8.52.89.537.53.8.72694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.2,"cell":47,"value":1,"removals":[],"toString":"Hidden Single: r6c3: 1 in block"},
+    {"gridBefore":"9571..4823..298.57.8275493..793..8.52.89.537.5318.72694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":11,"value":4,"removals":[],"toString":"Hidden Single: r2c3: 4 in column"},
+    {"gridBefore":"9571..4823.4298.57.8275493..793..8.52.89.537.5318.72694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":49,"value":4,"removals":[],"toString":"Hidden Single: r6c5: 4 in row"},
+    {"gridBefore":"9571..4823.4298.57.8275493..793..8.52.89.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.2,"cell":18,"value":1,"removals":[],"toString":"Hidden Single: r3c1: 1 in block"},
+    {"gridBefore":"9571..4823.4298.5718275493..793..8.52.89.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":10,"value":6,"removals":[],"toString":"Hidden Single: r2c2: 6 in block"},
+    {"gridBefore":"9571..482364298.5718275493..793..8.52.89.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":27,"value":6,"removals":[],"toString":"Hidden Single: r4c1: 6 in column"},
+    {"gridBefore":"9571..482364298.5718275493.6793..8.52.89.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":37,"value":4,"removals":[],"toString":"Hidden Single: r5c2: 4 in block"},
+    {"gridBefore":"9571..482364298.5718275493.6793..8.52489.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":15,"value":1,"removals":[],"toString":"Hidden Single: r2c7: 1 in row"},
+    {"gridBefore":"9571..48236429815718275493.6793..8.52489.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":26,"value":6,"removals":[],"toString":"Hidden Single: r3c9: 6 in block"},
+    {"gridBefore":"9571..4823642981571827549366793..8.52489.537.5318472694156..798796481523823579...","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":78,"value":6,"removals":[],"toString":"Hidden Single: r9c7: 6 in column"},
+    {"gridBefore":"9571..4823642981571827549366793..8.52489.537.5318472694156..7987964815238235796..","technique":"Hidden Single","shortName":"HS","rating":1.2,"cell":40,"value":6,"removals":[],"toString":"Hidden Single: r5c5: 6 in block"},
+    {"gridBefore":"9571..4823642981571827549366793..8.524896537.5318472694156..7987964815238235796..","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":44,"value":1,"removals":[],"toString":"Hidden Single: r5c9: 1 in row"},
+    {"gridBefore":"9571..4823642981571827549366793..8.52489653715318472694156..7987964815238235796..","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":34,"value":4,"removals":[],"toString":"Hidden Single: r4c8: 4 in block"},
+    {"gridBefore":"9571..4823642981571827549366793..8452489653715318472694156..7987964815238235796..","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":79,"value":1,"removals":[],"toString":"Hidden Single: r9c8: 1 in column"},
+    {"gridBefore":"9571..4823642981571827549366793..8452489653715318472694156..79879648152382357961.","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":80,"value":4,"removals":[],"toString":"Hidden Single: r9c9: 4 in block"},
+    {"gridBefore":"9571..4823642981571827549366793..8452489653715318472694156..798796481523823579614","technique":"Hidden Single","shortName":"HS","rating":1.2,"cell":5,"value":6,"removals":[],"toString":"Hidden Single: r1c6: 6 in block"},
+    {"gridBefore":"9571.64823642981571827549366793..8452489653715318472694156..798796481523823579614","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":4,"value":3,"removals":[],"toString":"Hidden Single: r1c5: 3 in block"},
+    {"gridBefore":"9571364823642981571827549366793..8452489653715318472694156..798796481523823579614","technique":"Hidden Single","shortName":"HS","rating":1.2,"cell":31,"value":1,"removals":[],"toString":"Hidden Single: r4c5: 1 in block"},
+    {"gridBefore":"95713648236429815718275493667931.8452489653715318472694156..798796481523823579614","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":32,"value":2,"removals":[],"toString":"Hidden Single: r4c6: 2 in block"},
+    {"gridBefore":"9571364823642981571827549366793128452489653715318472694156..798796481523823579614","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":58,"value":2,"removals":[],"toString":"Hidden Single: r7c5: 2 in column"},
+    {"gridBefore":"95713648236429815718275493667931284524896537153184726941562.798796481523823579614","technique":"Hidden Single","shortName":"HS","rating":1.0,"cell":59,"value":3,"removals":[],"toString":"Hidden Single: r7c6: 3 in block"}
+  ]
+}
