@@ -21,7 +21,9 @@ dependencies.
 
 Grid input is an 81-char string (digits `1`-`9`, `.` or `0` for empty,
 whitespace tolerated) or a `number[]` of length 81 (`0` = empty). Malformed
-input throws `InvalidGridError`.
+input throws `InvalidGridError`. A 729-char pencilmark (Sukaku) string is also
+accepted, where position `cell * 9 + (value - 1)` holds the digit when that
+candidate is live and `.` otherwise.
 
 ### Rate a puzzle
 
@@ -72,6 +74,96 @@ methods (`rate`, `solvePath`, `getHint`, `getAllHints`, `solve`, `analyze`,
 `checkValidity`, `generate`). The top-level functions wrap a lazily created
 default engine.
 
+## Settings
+
+The Java engine has a handful of flags that change *how* a puzzle is solved and
+therefore what it rates. They default to the Java defaults, so you only need
+these if you are reproducing a specific `serate` invocation or comparing rating
+schemes.
+
+```ts
+const engine = createEngine({ settings: { revisedRating: 1, FCPlus: 2 } });
+```
+
+| Setting | Default | serate |
+| --- | --- | --- |
+| `revisedRating` | `0` | `-N`, `--revisedRating=N` |
+| `batchSolving` | `0` | `-B`, `--batch=N` |
+| `FCPlus` | `0` | `-P`, `--FCPlus=N` |
+| `islkSudokuBUG` | `true` | `-G`, `--islkSudokuBUG=N` |
+| `islkSudokuURUL` | `true` | `-U`, `--islkSudokuURUL=N` |
+| `isBringBackSE121` | `false` | not exposed (GUI preference in Java) |
+
+### `revisedRating`
+
+An alternative rating scheme. `1` changes both the order rules are tried in and
+what several of them score, so the same puzzle can come out at a different ER.
+
+Reordering: Naked Single is tried much earlier, Hidden Pair before Naked Pair,
+and Turbot Fish before Swordfish. It also swaps in a separate `TurbotFish`
+producer where the default scheme uses `StrongLinks(2)` for the same technique.
+
+Rescoring:
+
+| Technique | Default | `revisedRating: 1` |
+| --- | --- | --- |
+| Naked Single | 2.3 | 1.6 |
+| Hidden Pair / Triplet / Quad | 3.4 / 4.0 / 5.4 | 2.9 / 3.8 / 5.2 |
+| Direct Hidden Triplet | 2.5 | 3.1 |
+| Swordfish / Jellyfish | 3.8 / 5.2 | 4.0 / 5.4 |
+| Unique Rectangle / Loop | 4.5, 4.6, 4.7, 5.0 by size | 4.5 rising by 0.1 per loop pair |
+| Unique Loop type 3 (hidden) | +0.0 pair … +0.2 quad | +0.1 pair … +0.3 quad |
+
+### `batchSolving`
+
+Changes the rating loop from "apply one hint per step" to "apply every hint of
+the smallest rating, then look again". Faster on large runs, and it can shift
+the reported ER because a different set of hints gets applied.
+
+- `1` collects only hints sharing the first (smallest) rating found this round.
+- `2` also keeps hints of other ratings, as long as they do not exceed the ER
+  reached so far.
+
+### `FCPlus`
+
+Controls how many non-trivial implications the chaining engine may use while
+building nested chains. Higher values let it find shorter chains, which
+generally lowers the ER of very hard puzzles. This only affects nesting level 2
+and above, so most puzzles are unaffected.
+
+- `0` matches SE 1.2.1: pointing/claiming, hidden and naked pairs, X-Wing.
+- `1` adds Turbot Fish and both XY-Wing forms.
+- `2` also adds the triplet sets, 3 strong links, WXYZ- and VWXYZ-Wings,
+  aligned triplet exclusion, unique loops and BUG.
+
+> `FCPlus: 2` can hit a latent bug in the Java engine: it puts unique-loop
+> detection into the chaining path, which then casts hints to an interface
+> `UniqueLoopType4Hint` does not implement. Java throws `ClassCastException`
+> there and this port fails at the same point with a `TypeError`. The behaviour
+> is reproduced rather than fixed, so both engines agree on where it breaks.
+
+### `islkSudokuBUG` and `islkSudokuURUL`
+
+Two corrections by lkSudoku, on by default. Setting either to `false` restores
+the older algorithm.
+
+`islkSudokuBUG` affects BUG detection: the fix gathers cells sharing the same
+extra value across regions so a type 2 pattern is recognised, and orders the
+type 3 search by degree so the simplest hint wins. Without it, some BUGs are
+missed entirely.
+
+`islkSudokuURUL` affects unique rectangles and loops: the fix keeps each
+candidate cell's extra values separate (they otherwise leak between siblings)
+and searches type 3 from degree 2 upward rather than starting at the number of
+extra values.
+
+### `isBringBackSE121`
+
+Restricts the engine to the technique set of the original Sudoku Explainer
+1.2.1, dropping Turbot Fish, the 3-6 strong-linked fishes, and the WXYZ,
+VWXYZ, UVWXYZ and TUVWXYZ wings. Puzzles needing those now rate higher, since
+the solver must fall back to chains.
+
 ## Fidelity
 
 Correctness is enforced by a differential test suite: a Java reference driver
@@ -80,16 +172,10 @@ of ratings and every recorded field of every solve step. The corpora are 133
 seeded generator puzzles, 1000 grids and 614 pencilmark states derived from
 HoDoKu's regression library, and a per-flag matrix.
 
-Both 81-character givens and 729-character pencilmark (Sukaku) grids are
-accepted, and the `Settings` flags that serate exposes are settable per engine:
-
-```ts
-const engine = createEngine({ settings: { revisedRating: 1, FCPlus: 2 } });
-```
-
-`revisedRating`, `isBringBackSE121`, `batchSolving`, `FCPlus`, `islkSudokuBUG`
-and `islkSudokuURUL` each have their own fixture set, so they are held to the
-Java engine exactly rather than assumed.
+Every setting above has its own fixture set generated by the same Java driver,
+one factor varied at a time, and each is asserted to actually change the output
+somewhere. A flag that quietly did nothing would fail the suite rather than
+pass it.
 
 Sudoku *variants* (X, Windoku, Disjoint Groups, NC, …) are out of scope; this is
 a vanilla 9×9 engine.
