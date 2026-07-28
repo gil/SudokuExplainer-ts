@@ -1,5 +1,6 @@
 import type { Grid } from './Grid.js';
 import type { CellSet } from './tools/CellSet.js';
+import { Settings } from './Settings.js';
 
 // Grid and Cell reference each other. Cell only needs Grid at runtime (for
 // getVisibleCells), so we keep this module free of value imports (a leaf) to
@@ -10,11 +11,10 @@ export function _setGridRef(g: typeof Grid): void {
   gridRef = g;
 }
 
-// Ported from diuf.sudoku.Cell. Cell notation is frozen to RC notation
-// (Settings.isRCNotation defaults to true), so the letter-column branch is
-// dropped.
+// Ported from diuf.sudoku.Cell.
 function cellName(x: number, y: number): string {
-  return 'r' + (y + 1) + 'c' + (x + 1);
+  if (Settings.getInstance().isRCNotation()) return 'r' + (y + 1) + 'c' + (x + 1);
+  return String.fromCharCode('A'.charCodeAt(0) + x) + (y + 1);
 }
 
 export class Cell {

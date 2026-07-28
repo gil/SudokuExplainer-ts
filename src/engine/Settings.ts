@@ -16,6 +16,7 @@ export class Settings {
   private islkSudokuURULFlag = true;
   private batchSolvingMode = 0;
   private fcPlus = 0;
+  private isRCNotationFlag = true;
   private isBringBackSE121Flag = false;
 
   // Vanilla baseline. isVLatin gates the region sweep (`< 3` vs `< 10`) in ~30
@@ -82,6 +83,13 @@ export class Settings {
   }
   FCPlus(): number {
     return this.fcPlus;
+  }
+
+  setRCNotation(value: boolean): void {
+    this.isRCNotationFlag = value;
+  }
+  isRCNotation(): boolean {
+    return this.isRCNotationFlag;
   }
 
   setBringBackSE121(value: boolean): void {
@@ -187,6 +195,7 @@ export interface SettingsSnapshot {
   islkSudokuURUL: boolean;
   batchSolving: number;
   FCPlus: number;
+  isRCNotation: boolean;
   isBringBackSE121: boolean;
   numThreads: number;
   bestHintOnly: boolean;
@@ -202,6 +211,7 @@ export function snapshotSettings(): SettingsSnapshot {
     islkSudokuURUL: s.islkSudokuURUL(),
     batchSolving: s.batchSolving(),
     FCPlus: s.FCPlus(),
+    isRCNotation: s.isRCNotation(),
     isBringBackSE121: s.isBringBackSE121(),
     numThreads: s.getNumThreads(),
     bestHintOnly: s.getBestHintOnly(),
@@ -216,6 +226,7 @@ export function restoreSettings(snap: SettingsSnapshot): void {
   s.setlkSudokuURUL(snap.islkSudokuURUL);
   s.setBatchSolving(snap.batchSolving);
   s.setFCPlus(snap.FCPlus);
+  s.setRCNotation(snap.isRCNotation);
   s.setBringBackSE121(snap.isBringBackSE121);
   s.setNumThreads(snap.numThreads);
   s.setBestHintOnly(snap.bestHintOnly);

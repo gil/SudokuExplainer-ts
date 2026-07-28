@@ -1,6 +1,7 @@
 import { BitSet32 } from './util/BitSet32.js';
 import { Cell, _setGridRef } from './Cell.js';
 import { CellSet } from './tools/CellSet.js';
+import { Settings } from './Settings.js';
 
 // Region type indexes, as fixed by Grid.java (Block.getRegionTypeIndex()==0,
 // Row==1, Column==2) and by the order of the static `regions` array.
@@ -371,6 +372,8 @@ export class Row extends Region {
   getRegionIndex(): number { return this.rowNum; }
   getRowNum(): number { return this.rowNum; }
   toString(): string { return 'row'; }
+  // Java branches on isRCNotation here (and in toFullStringShort), but both
+  // arms are identical: only columns get chess-style letters.
   toFullString(): string { return this.toString() + ' ' + (this.rowNum + 1); }
   toStringShort(): string { return 'r'; }
   toFullStringShort(): string { return this.toStringShort() + (this.rowNum + 1); }
@@ -395,8 +398,12 @@ export class Column extends Region {
   getRegionIndex(): number { return this.columnNum; }
   getColumnNum(): number { return this.columnNum; }
   toString(): string { return 'column'; }
-  toFullString(): string { return this.toString() + ' ' + (this.columnNum + 1); }
+  toFullString(): string {
+    if (Settings.getInstance().isRCNotation()) return this.toString() + ' ' + (this.columnNum + 1);
+    return this.toString() + ' ' + String.fromCharCode('A'.charCodeAt(0) + this.columnNum);
+  }
   toStringShort(): string { return 'c'; }
+  // Java's isRCNotation branch here has identical arms; the short form stays numeric.
   toFullStringShort(): string { return this.toStringShort() + (this.columnNum + 1); }
   toFullNumber(): number { return this.getRegionTypeIndex() * 10 + (this.columnNum + 1); }
 }

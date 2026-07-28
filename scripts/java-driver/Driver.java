@@ -77,7 +77,8 @@ public class Driver {
 
     // ---------- settings ----------
     // Applies "k=v,k=v" to the Settings singleton, matching the serate flags
-    // that change solving behaviour. Keys are the Settings setter names.
+    // that change solving behaviour, plus isRCNotation, which changes hint text
+    // only. Keys are the Settings setter names.
     static void applySettings(String spec) {
         if (spec == null || spec.isEmpty()) return;
         Settings s = Settings.getInstance();
@@ -90,6 +91,7 @@ public class Driver {
                 case "FCPlus": s.setFCPlus(Integer.parseInt(v)); break;
                 case "islkSudokuBUG": s.setlkSudokuBUG(Boolean.parseBoolean(v)); break;
                 case "islkSudokuURUL": s.setlkSudokuURUL(Boolean.parseBoolean(v)); break;
+                case "isRCNotation": s.setRCNotation(Boolean.parseBoolean(v)); break;
                 case "isBringBackSE121":
                     s.setBringBackSE121(Boolean.parseBoolean(v));
                     if (Boolean.parseBoolean(v)) s.Settings_BBSE121();

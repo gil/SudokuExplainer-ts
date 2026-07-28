@@ -36,6 +36,12 @@ export interface EngineSettings {
   islkSudokuURUL?: boolean;
   /** SE 1.2.1 technique set. Java default false. */
   isBringBackSE121?: boolean;
+  /**
+   * Cell notation in hint text. Java default true: `r1c1` and `column 1`.
+   * False switches to chess notation, `A1` and `column A`. Structured refs
+   * (`CellRef.name`, `RegionRef.name`) are unaffected.
+   */
+  isRCNotation?: boolean;
 }
 
 export interface EngineOptions {
@@ -135,6 +141,7 @@ class EngineImpl implements Engine {
     if (cfg.FCPlus !== undefined) s.setFCPlus(cfg.FCPlus);
     if (cfg.islkSudokuBUG !== undefined) s.setlkSudokuBUG(cfg.islkSudokuBUG);
     if (cfg.islkSudokuURUL !== undefined) s.setlkSudokuURUL(cfg.islkSudokuURUL);
+    if (cfg.isRCNotation !== undefined) s.setRCNotation(cfg.isRCNotation);
     if (cfg.isBringBackSE121 !== undefined) {
       s.setBringBackSE121(cfg.isBringBackSE121);
       if (cfg.isBringBackSE121) s.settingsBBSE121();

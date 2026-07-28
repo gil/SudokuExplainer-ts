@@ -23,6 +23,7 @@ describe('Settings singleton', () => {
     expect(s.FCPlus()).toBe(0);
     expect(s.islkSudokuBUG()).toBe(true);
     expect(s.islkSudokuURUL()).toBe(true);
+    expect(s.isRCNotation()).toBe(true);
     expect(s.isBringBackSE121()).toBe(false);
     expect(s.getNumThreads()).toBe(1);
     expect(s.getBestHintOnly()).toBe(false);
@@ -86,6 +87,7 @@ describe('Settings singleton', () => {
     s.setFCPlus(2);
     s.setlkSudokuBUG(false);
     s.setlkSudokuURUL(false);
+    s.setRCNotation(false);
     s.setBringBackSE121(true);
     s.setNumThreads(4);
     s.setBestHintOnly(true);
@@ -98,6 +100,7 @@ describe('Settings singleton', () => {
     expect(s.FCPlus()).toBe(0);
     expect(s.islkSudokuBUG()).toBe(true);
     expect(s.islkSudokuURUL()).toBe(true);
+    expect(s.isRCNotation()).toBe(true);
     expect(s.isBringBackSE121()).toBe(false);
     expect(s.getNumThreads()).toBe(1);
     expect(s.getBestHintOnly()).toBe(false);

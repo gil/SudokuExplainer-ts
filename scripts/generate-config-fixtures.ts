@@ -26,6 +26,7 @@ const CONFIGS: Record<string, string> = {
   nourulfix: 'islkSudokuURUL=false',
   batch1: 'batchSolving=1',
   batch2: 'batchSolving=2',
+  chessnotation: 'isRCNotation=false',
 };
 
 // FCPlus only shows up at level >= 2 chaining nesting, which only the monsters reach.

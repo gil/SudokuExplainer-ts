@@ -58,6 +58,7 @@ export const CONFIGS: Config[] = [
   { id: 'nourulfix', apply: (s) => s.setlkSudokuURUL(false) },
   { id: 'batch1', apply: (s) => s.setBatchSolving(1), batch: true },
   { id: 'batch2', apply: (s) => s.setBatchSolving(2), batch: true },
+  { id: 'chessnotation', apply: (s) => s.setRCNotation(false) },
 ];
 
 const baseline = new Map<string, PuzzleFixture>();
@@ -66,7 +67,10 @@ for (const f of loadFixtures('test/fixtures/config/baseline')) baseline.set(f.id
 function differsFromBaseline(f: PuzzleFixture): boolean {
   const b = baseline.get(f.id);
   if (b === undefined) return false;
-  return JSON.stringify(b.rating) !== JSON.stringify(f.rating) || b.steps.length !== f.steps.length;
+  if (JSON.stringify(b.rating) !== JSON.stringify(f.rating)) return true;
+  if (b.steps.length !== f.steps.length) return true;
+  // isRCNotation leaves the solve path alone and only rewrites the hint text.
+  return b.steps.some((s, i) => s.toString !== f.steps[i].toString);
 }
 
 for (const config of CONFIGS) {

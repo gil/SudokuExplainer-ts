@@ -77,9 +77,9 @@ default engine.
 ## Settings
 
 The Java engine has a handful of flags that change *how* a puzzle is solved and
-therefore what it rates. They default to the Java defaults, so you only need
-these if you are reproducing a specific `serate` invocation or comparing rating
-schemes.
+therefore what it rates, plus one that only changes how hints are worded. They
+default to the Java defaults, so you only need these if you are reproducing a
+specific `serate` invocation or comparing rating schemes.
 
 ```ts
 const engine = createEngine({ settings: { revisedRating: 1, FCPlus: 2 } });
@@ -93,6 +93,7 @@ const engine = createEngine({ settings: { revisedRating: 1, FCPlus: 2 } });
 | `islkSudokuBUG` | `true` | `-G`, `--islkSudokuBUG=N` |
 | `islkSudokuURUL` | `true` | `-U`, `--islkSudokuURUL=N` |
 | `isBringBackSE121` | `false` | not exposed (GUI preference in Java) |
+| `isRCNotation` | `true` | not exposed (GUI preference in Java) |
 
 ### `revisedRating`
 
@@ -164,10 +165,25 @@ Restricts the engine to the technique set of the original Sudoku Explainer
 VWXYZ, UVWXYZ and TUVWXYZ wings. Puzzles needing those now rate higher, since
 the solver must fall back to chains.
 
+### `isRCNotation`
+
+Picks the cell notation used in hint text. `true` (the Java default) gives
+`r1c1` and `column 8`; `false` gives chess-style `A1` and `column H`. Rows and
+the short region forms (`r8`, `c8`) are numeric either way, as in Java.
+
+This is the only flag that leaves the solve path untouched: ratings, hint order
+and removals are identical, and only `hint.toString()` and `hint.explain()`
+change. The structured refs this port adds (`CellRef.name`, `RegionRef.name`)
+are its own surface, not Java's, and stay `R8C2` / `C8` regardless.
+
+Java can only set this from its GUI, and it loads preferences on GUI startup
+only, so every headless Java path runs with `true`. The flag is exposed here
+anyway, and its fixtures are generated from the Java engine like every other.
+
 ### Deliberately not exposed
 
-The Java `Settings` singleton carries three further fields. None of them can
-change this engine's output, so none are settable here:
+The Java `Settings` singleton carries two further fields. Neither can change
+this engine's output, so neither is settable here:
 
 - **`numThreads`** (serate `-t`) distributes the multiple-chaining search across
   threads in Java. It hands the same cell list to the same rules, so only wall
@@ -175,9 +191,6 @@ change this engine's output, so none are settable here:
   ported for fidelity; the engine always takes the serial path.
 - **`bestHintOnly`** is read in exactly one place in Java, and that line is
   commented out. It is dead there too.
-- **`isRCNotation`** picks `r1c1` over chess-style `A1` in hint text. Only the
-  Java GUI can set it, and Java loads preferences solely on GUI startup, so on
-  every headless path it stays `true` — which is what this port hardcodes.
 
 Sudoku variant flags (`isX`, `isWindows`, `isDG`, `whichNC`, …) are out of
 scope; see below.
