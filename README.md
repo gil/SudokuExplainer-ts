@@ -164,6 +164,24 @@ Restricts the engine to the technique set of the original Sudoku Explainer
 VWXYZ, UVWXYZ and TUVWXYZ wings. Puzzles needing those now rate higher, since
 the solver must fall back to chains.
 
+### Deliberately not exposed
+
+The Java `Settings` singleton carries three further fields. None of them can
+change this engine's output, so none are settable here:
+
+- **`numThreads`** (serate `-t`) distributes the multiple-chaining search across
+  threads in Java. It hands the same cell list to the same rules, so only wall
+  time changes, and JS has no shared-memory threads to hand it to. The field is
+  ported for fidelity; the engine always takes the serial path.
+- **`bestHintOnly`** is read in exactly one place in Java, and that line is
+  commented out. It is dead there too.
+- **`isRCNotation`** picks `r1c1` over chess-style `A1` in hint text. Only the
+  Java GUI can set it, and Java loads preferences solely on GUI startup, so on
+  every headless path it stays `true` — which is what this port hardcodes.
+
+Sudoku variant flags (`isX`, `isWindows`, `isDG`, `whichNC`, …) are out of
+scope; see below.
+
 ## Fidelity
 
 Correctness is enforced by a differential test suite: a Java reference driver
