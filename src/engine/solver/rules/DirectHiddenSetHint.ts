@@ -1,3 +1,4 @@
+import { Settings } from '../../Settings.js';
 import { Cell } from '../../Cell.js';
 import type { Grid, Region } from '../../Grid.js';
 import type { Link } from '../../Link.js';
@@ -91,9 +92,15 @@ export class DirectHiddenSetHint extends IndirectHint implements Rule {
 
   getDifficulty(): number {
     const degree = this.values.length;
-    if (degree === 2) return 2.0;
-    else if (degree === 3) return 2.5;
-    else return 4.3;
+    if (Settings.getInstance().getRevisedRating() === 1) {
+      if (degree === 2) return 2.0;
+      else if (degree === 3) return 3.1; // New rating
+      else return 4.3;
+    } else {
+      if (degree === 2) return 2.0;
+      else if (degree === 3) return 2.5;
+      else return 4.3;
+    }
   }
 
   getName(): string {

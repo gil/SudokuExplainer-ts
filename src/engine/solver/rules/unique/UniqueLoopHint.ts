@@ -1,3 +1,4 @@
+import { Settings } from '../../../Settings.js';
 import { Cell } from '../../../Cell.js';
 import type { Grid, Region } from '../../../Grid.js';
 import { BitSet32 } from '../../../util/BitSet32.js';
@@ -77,11 +78,15 @@ export abstract class UniqueLoopHint extends IndirectHint implements Rule {
   abstract getType(): number;
 
   getDifficulty(): number {
-    // revisedRating frozen 0: original rating (4.5 UR, 4.6 UL6, 4.7 UL8, 5.0 UL10+).
     let result = 4.5;
-    if (this.loop.length >= 10) result += 0.3;
-    if (this.loop.length >= 8) result += 0.2;
-    else if (this.loop.length >= 6) result += 0.1;
+    if (Settings.getInstance().getRevisedRating() === 1) {
+      result += (Math.trunc(this.loop.length / 2) - 2) * 0.1; // 4.5 for UR(UL4) to 5.0 for UL14
+    } else {
+      // Original rating: 4.5 UR, 4.6 UL6, 4.7 UL8, 5.0 UL10+.
+      if (this.loop.length >= 10) result += 0.3;
+      if (this.loop.length >= 8) result += 0.2;
+      else if (this.loop.length >= 6) result += 0.1;
+    }
     return result;
   }
 

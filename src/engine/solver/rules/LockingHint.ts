@@ -1,3 +1,4 @@
+import { Settings } from '../../Settings.js';
 import { Cell } from '../../Cell.js';
 import { Block, Row, Column, type Region } from '../../Grid.js';
 import type { Grid } from '../../Grid.js';
@@ -60,12 +61,21 @@ export class LockingHint extends IndirectHint implements Rule, HasParentPotentia
 
   getDifficulty(): number {
     const degree = this.regions.length / 2;
-    if (degree === 1) {
-      if (this.regions[1] instanceof Column || this.regions[1] instanceof Row) return 2.6; // Pointing
-      else return 2.8; // Claiming
-    } else if (degree === 2) return 3.2; // X-Wing
-    else if (degree === 3) return 3.8; // Swordfish
-    else return 5.2; // Jellyfish
+    if (Settings.getInstance().getRevisedRating() === 1) {
+      if (degree === 1) {
+        if (this.regions[1] instanceof Column || this.regions[1] instanceof Row) return 2.6; // Pointing
+        else return 2.8; // Claiming
+      } else if (degree === 2) return 3.2; // X-Wing
+      else if (degree === 3) return 4.0; // Swordfish, new rating
+      else return 5.4; // Jellyfish, new rating
+    } else {
+      if (degree === 1) {
+        if (this.regions[1] instanceof Column || this.regions[1] instanceof Row) return 2.6; // Pointing
+        else return 2.8; // Claiming
+      } else if (degree === 2) return 3.2; // X-Wing
+      else if (degree === 3) return 3.8; // Swordfish
+      else return 5.2; // Jellyfish
+    }
   }
 
   getName(): string {

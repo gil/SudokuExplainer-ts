@@ -1,3 +1,4 @@
+import { Settings } from '../../Settings.js';
 import type { Cell } from '../../Cell.js';
 import type { Grid, Region } from '../../Grid.js';
 import { format } from '../../../templates/format.js';
@@ -14,7 +15,8 @@ export class NakedSingleHint extends DirectHint implements Rule {
   }
 
   getDifficulty(): number {
-    return 2.3;
+    if (Settings.getInstance().getRevisedRating() === 1) return 1.6; // New rating
+    return 2.3; // Original rating
   }
 
   getName(): string {

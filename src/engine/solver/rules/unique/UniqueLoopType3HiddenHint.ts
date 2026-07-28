@@ -1,3 +1,4 @@
+import { Settings } from '../../../Settings.js';
 import { Cell } from '../../../Cell.js';
 import type { Grid, Region } from '../../../Grid.js';
 import { BitSet32 } from '../../../util/BitSet32.js';
@@ -40,8 +41,8 @@ export class UniqueLoopType3HiddenHint extends UniqueLoopHint {
 
   override getDifficulty(): number {
     let toAdd = this.hiddenIndexes.length;
-    // revisedRating frozen 0: original rating Pair=0.0, Quad=0.2.
-    toAdd = (toAdd - 1) * 0.1;
+    if (Settings.getInstance().getRevisedRating() === 1) toAdd = toAdd * 0.1; // Pair=0.1, Quad=0.3
+    else toAdd = (toAdd - 1) * 0.1; // Original rating Pair=0.0, Quad=0.2
     return super.getDifficulty() + toAdd;
   }
 

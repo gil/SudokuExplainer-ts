@@ -1,3 +1,4 @@
+import { Settings } from '../../Settings.js';
 import { Cell } from '../../Cell.js';
 import type { Grid, Region } from '../../Grid.js';
 import type { Link } from '../../Link.js';
@@ -59,9 +60,15 @@ export class HiddenSetHint extends IndirectHint implements Rule, HasParentPotent
 
   getDifficulty(): number {
     const degree = this.values.length;
-    if (degree === 2) return 3.4;
-    else if (degree === 3) return 4.0;
-    else return 5.4;
+    if (Settings.getInstance().getRevisedRating() === 1) {
+      if (degree === 2) return 2.9; // New rating
+      else if (degree === 3) return 3.8; // New rating
+      else return 5.2; // New rating
+    } else {
+      if (degree === 2) return 3.4;
+      else if (degree === 3) return 4.0;
+      else return 5.4;
+    }
   }
 
   getName(): string {

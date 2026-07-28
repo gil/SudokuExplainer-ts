@@ -23,6 +23,7 @@ import { HiddenSet } from './rules/HiddenSet.js';
 import { NakedSet } from './rules/NakedSet.js';
 import { Fisherman } from './rules/Fisherman.js';
 import { StrongLinks } from './rules/StrongLinks.js';
+import { TurbotFish } from './rules/TurbotFish.js';
 import { XYWing } from './rules/XYWing.js';
 import { WXYZWing } from './rules/WXYZWing.js';
 import { VWXYZWing } from './rules/VWXYZWing.js';
@@ -40,8 +41,8 @@ import { Chaining } from './rules/chaining/Chaining.js';
 // gatherHints/gatherProducer, getHintsHint, and the batch path
 // getBatchDifficulty with its SmallestHintsAccumulator. The Asker argument is
 // dropped everywhere: the port always proceeds as if the user answered yes,
-// keeping the isUsingAdvanced bookkeeping. Only the frozen revisedRating==0
-// else-branch of the Java constructor is ported.
+// keeping the isUsingAdvanced bookkeeping. Both revisedRating branches of the
+// Java constructor are ported.
 
 export interface SolverHooks {
   shouldCancel?: () => boolean;
@@ -71,10 +72,11 @@ export interface ProducerTiers {
   techniqueByProducer: Map<HintProducer, SolvingTechnique>;
 }
 
-// Registration order of the Java Solver constructor (revisedRating==0 branch),
-// with variant-gated entries (VLocking, *Gen, NC producers) removed and every
-// producer guarded by addIfWorth against the enabled technique set. The result
-// for defaultTechniques() equals the overview's registration table.
+// Registration order of the Java Solver constructor, with variant-gated entries
+// (VLocking, *Gen, NC producers) removed and every producer guarded by
+// addIfWorth against the enabled technique set. Both Settings.revisedRating()
+// branches are ported: 0 is the fork default, 1 reorders the rules and swaps
+// StrongLinks(2) for the standalone TurbotFish producer.
 export function buildProducerTiers(techniques: Set<SolvingTechnique>): ProducerTiers {
   const direct: HintProducer[] = [];
   const indirect: IndirectHintProducer[] = [];
@@ -99,52 +101,108 @@ export function buildProducerTiers(techniques: Set<SolvingTechnique>): ProducerT
 
   const settings = Settings.getInstance();
 
-  addD(SolvingTechnique.HiddenSingle, new HiddenSingle());
-  if (settings.isBlocks()) addD(SolvingTechnique.DirectPointing, new Locking(true));
-  addD(SolvingTechnique.DirectHiddenPair, new HiddenSet(2, true));
-  addD(SolvingTechnique.NakedSingle, new NakedSingle());
-  addD(SolvingTechnique.DirectHiddenTriplet, new HiddenSet(3, true));
+  if (settings.getRevisedRating() === 1) {
+    addD(SolvingTechnique.HiddenSingle, new HiddenSingle());
+    addD(SolvingTechnique.NakedSingle, new NakedSingle());
+    // Java does not guard this one on isBlocks() in the revisedRating branch,
+    // unlike the default branch below.
+    addD(SolvingTechnique.DirectPointing, new Locking(true));
+    addD(SolvingTechnique.DirectHiddenPair, new HiddenSet(2, true));
 
-  if (settings.isBlocks()) addI(SolvingTechnique.PointingClaiming, indirect, new Locking(false));
-  addI(SolvingTechnique.NakedPair, indirect, new NakedSet(2));
-  addI(SolvingTechnique.XWing, indirect, new Fisherman(2));
-  addI(SolvingTechnique.HiddenPair, indirect, new HiddenSet(2, false));
-  addI(SolvingTechnique.NakedTriplet, indirect, new NakedSet(3));
-  addI(SolvingTechnique.Swordfish, indirect, new Fisherman(3));
-  addI(SolvingTechnique.HiddenTriplet, indirect, new HiddenSet(3, false));
-  addI(SolvingTechnique.TurbotFish, indirect, new StrongLinks(2));
-  addI(SolvingTechnique.XYWing, indirect, new XYWing(false));
-  addI(SolvingTechnique.XYZWing, indirect, new XYWing(true));
-  addI(SolvingTechnique.UniqueLoop, indirect, new UniqueLoops());
-  addI(SolvingTechnique.NakedQuad, indirect, new NakedSet(4));
-  addI(SolvingTechnique.Jellyfish, indirect, new Fisherman(4));
-  addI(SolvingTechnique.HiddenQuad, indirect, new HiddenSet(4, false));
-  addI(SolvingTechnique.ThreeStrongLinks, indirect, new StrongLinks(3));
-  addI(SolvingTechnique.WXYZWing, indirect, new WXYZWing());
-  addI(SolvingTechnique.BivalueUniversalGrave, indirect, new BivalueUniversalGrave());
-  addI(SolvingTechnique.FourStrongLinks, indirect, new StrongLinks(4));
-  addI(SolvingTechnique.VWXYZWing, indirect, new VWXYZWing());
-  addI(SolvingTechnique.AlignedPairExclusion, indirect, new AlignedPairExclusion());
-  addI(SolvingTechnique.FiveStrongLinks, indirect, new StrongLinks(5));
-  addI(SolvingTechnique.UVWXYZWing, indirect, new UVWXYZWing());
-  addI(SolvingTechnique.SixStrongLinks, indirect, new StrongLinks(6));
+    if (settings.isBlocks()) addI(SolvingTechnique.PointingClaiming, indirect, new Locking(false));
+    addI(SolvingTechnique.HiddenPair, indirect, new HiddenSet(2, false));
+    addI(SolvingTechnique.NakedPair, indirect, new NakedSet(2));
+    // Java registers HiddenSet(3, true) under DirectHiddenPair here, not under
+    // DirectHiddenTriplet. Kept as-is: it decides whether the producer is
+    // enabled at all, and DirectHiddenTriplet never appears in this branch.
+    addD(SolvingTechnique.DirectHiddenPair, new HiddenSet(3, true));
+    addI(SolvingTechnique.XWing, indirect, new Fisherman(2));
+    addI(SolvingTechnique.NakedTriplet, indirect, new NakedSet(3));
+    addI(SolvingTechnique.HiddenTriplet, indirect, new HiddenSet(3, false));
+    addI(SolvingTechnique.TurbotFish, indirect, new TurbotFish());
+    addI(SolvingTechnique.Swordfish, indirect, new Fisherman(3));
+    addI(SolvingTechnique.XYWing, indirect, new XYWing(false));
+    addI(SolvingTechnique.XYZWing, indirect, new XYWing(true));
+    addI(SolvingTechnique.UniqueLoop, indirect, new UniqueLoops());
+    addI(SolvingTechnique.NakedQuad, indirect, new NakedSet(4));
+    addI(SolvingTechnique.Jellyfish, indirect, new Fisherman(4));
+    addI(SolvingTechnique.HiddenQuad, indirect, new HiddenSet(4, false));
+    addI(SolvingTechnique.ThreeStrongLinks, indirect, new StrongLinks(3));
+    addI(SolvingTechnique.WXYZWing, indirect, new WXYZWing());
+    addI(SolvingTechnique.BivalueUniversalGrave, indirect, new BivalueUniversalGrave());
+    addI(SolvingTechnique.FourStrongLinks, indirect, new StrongLinks(4));
+    addI(SolvingTechnique.VWXYZWing, indirect, new VWXYZWing());
+    addI(SolvingTechnique.AlignedPairExclusion, indirect, new AlignedPairExclusion());
+    addI(SolvingTechnique.FiveStrongLinks, indirect, new StrongLinks(5));
+    addI(SolvingTechnique.UVWXYZWing, indirect, new UVWXYZWing());
+    addI(SolvingTechnique.SixStrongLinks, indirect, new StrongLinks(6));
 
-  addI(SolvingTechnique.ForcingChainCycle, chaining1, new Chaining(false, false, false, 0, false, 0));
-  addI(SolvingTechnique.TUVWXYZWing, chaining1, new TUVWXYZWing());
-  addI(SolvingTechnique.AlignedTripletExclusion, chaining1, new AlignedExclusion(3));
-  addI(SolvingTechnique.NishioForcingChain, chaining1, new Chaining(false, true, true, 0, false, 0));
-  addI(SolvingTechnique.MultipleForcingChain, chaining1, new Chaining(true, false, false, 0, false, 0));
-  addI(SolvingTechnique.DynamicForcingChain, chaining1, new Chaining(true, true, false, 0, false, 0));
+    addI(SolvingTechnique.ForcingChainCycle, chaining1, new Chaining(false, false, false, 0, false, 0));
+    addI(SolvingTechnique.TUVWXYZWing, chaining1, new TUVWXYZWing());
+    addI(SolvingTechnique.AlignedTripletExclusion, chaining1, new AlignedExclusion(3));
+    addI(SolvingTechnique.NishioForcingChain, chaining1, new Chaining(false, true, true, 0, false, 0));
+    addI(SolvingTechnique.MultipleForcingChain, chaining1, new Chaining(true, false, false, 0, false, 0));
+    addI(SolvingTechnique.DynamicForcingChain, chaining1, new Chaining(true, true, false, 0, false, 0));
 
-  addI(SolvingTechnique.DynamicForcingChainPlus, chaining2, new Chaining(true, true, false, 1, false, 0));
+    addI(SolvingTechnique.DynamicForcingChainPlus, chaining2, new Chaining(true, true, false, 1, false, 0));
 
-  addI(SolvingTechnique.NestedForcingChain, advanced, new Chaining(true, true, false, 2, false, 0));
-  addI(SolvingTechnique.NestedForcingChain, advanced, new Chaining(true, true, false, 3, false, 0));
+    addI(SolvingTechnique.NestedForcingChain, advanced, new Chaining(true, true, false, 2, false, 0));
+    addI(SolvingTechnique.NestedForcingChain, advanced, new Chaining(true, true, false, 3, false, 0));
 
-  addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 0));
-  addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 1));
-  addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 2));
-  addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 3));
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 0));
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 1));
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 2));
+    // The default branch adds a fourth (4,false,3) entry here; this one does not.
+  } else {
+    addD(SolvingTechnique.HiddenSingle, new HiddenSingle());
+    if (settings.isBlocks()) addD(SolvingTechnique.DirectPointing, new Locking(true));
+    addD(SolvingTechnique.DirectHiddenPair, new HiddenSet(2, true));
+    addD(SolvingTechnique.NakedSingle, new NakedSingle());
+    addD(SolvingTechnique.DirectHiddenTriplet, new HiddenSet(3, true));
+
+    if (settings.isBlocks()) addI(SolvingTechnique.PointingClaiming, indirect, new Locking(false));
+    addI(SolvingTechnique.NakedPair, indirect, new NakedSet(2));
+    addI(SolvingTechnique.XWing, indirect, new Fisherman(2));
+    addI(SolvingTechnique.HiddenPair, indirect, new HiddenSet(2, false));
+    addI(SolvingTechnique.NakedTriplet, indirect, new NakedSet(3));
+    addI(SolvingTechnique.Swordfish, indirect, new Fisherman(3));
+    addI(SolvingTechnique.HiddenTriplet, indirect, new HiddenSet(3, false));
+    // Java comments the standalone TurbotFish() out here: StrongLinks(2) is
+    // stated to be equivalent, and is what the default rating path uses.
+    addI(SolvingTechnique.TurbotFish, indirect, new StrongLinks(2));
+    addI(SolvingTechnique.XYWing, indirect, new XYWing(false));
+    addI(SolvingTechnique.XYZWing, indirect, new XYWing(true));
+    addI(SolvingTechnique.UniqueLoop, indirect, new UniqueLoops());
+    addI(SolvingTechnique.NakedQuad, indirect, new NakedSet(4));
+    addI(SolvingTechnique.Jellyfish, indirect, new Fisherman(4));
+    addI(SolvingTechnique.HiddenQuad, indirect, new HiddenSet(4, false));
+    addI(SolvingTechnique.ThreeStrongLinks, indirect, new StrongLinks(3));
+    addI(SolvingTechnique.WXYZWing, indirect, new WXYZWing());
+    addI(SolvingTechnique.BivalueUniversalGrave, indirect, new BivalueUniversalGrave());
+    addI(SolvingTechnique.FourStrongLinks, indirect, new StrongLinks(4));
+    addI(SolvingTechnique.VWXYZWing, indirect, new VWXYZWing());
+    addI(SolvingTechnique.AlignedPairExclusion, indirect, new AlignedPairExclusion());
+    addI(SolvingTechnique.FiveStrongLinks, indirect, new StrongLinks(5));
+    addI(SolvingTechnique.UVWXYZWing, indirect, new UVWXYZWing());
+    addI(SolvingTechnique.SixStrongLinks, indirect, new StrongLinks(6));
+
+    addI(SolvingTechnique.ForcingChainCycle, chaining1, new Chaining(false, false, false, 0, false, 0));
+    addI(SolvingTechnique.TUVWXYZWing, chaining1, new TUVWXYZWing());
+    addI(SolvingTechnique.AlignedTripletExclusion, chaining1, new AlignedExclusion(3));
+    addI(SolvingTechnique.NishioForcingChain, chaining1, new Chaining(false, true, true, 0, false, 0));
+    addI(SolvingTechnique.MultipleForcingChain, chaining1, new Chaining(true, false, false, 0, false, 0));
+    addI(SolvingTechnique.DynamicForcingChain, chaining1, new Chaining(true, true, false, 0, false, 0));
+
+    addI(SolvingTechnique.DynamicForcingChainPlus, chaining2, new Chaining(true, true, false, 1, false, 0));
+
+    addI(SolvingTechnique.NestedForcingChain, advanced, new Chaining(true, true, false, 2, false, 0));
+    addI(SolvingTechnique.NestedForcingChain, advanced, new Chaining(true, true, false, 3, false, 0));
+
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 0));
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 1));
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 2));
+    addI(SolvingTechnique.NestedForcingChain, experimental, new Chaining(true, true, false, 4, false, 3)); // highly experimental
+  }
 
   const validators: WarningHintProducer[] = [new NoDoubles()];
   const warnings: WarningHintProducer[] = [
