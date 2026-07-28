@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 import { loadFixtures } from '../replay.js';
-import { runFull, SLOW_IDS } from '../full.test.js';
+import { runFull, SLOW_IDS } from '../runFull.js';
 
 describe('full differential (slow monsters)', () => {
   for (const f of loadFixtures()) {

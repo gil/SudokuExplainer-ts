@@ -28,10 +28,26 @@ export interface PuzzleFixture {
   steps: FixtureStep[];
 }
 
-export function loadFixtures(): PuzzleFixture[] {
-  return readdirSync('test/fixtures/puzzles')
+export function loadFixtures(dir = 'test/fixtures/puzzles'): PuzzleFixture[] {
+  return readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
-    .map((f) => JSON.parse(readFileSync(`test/fixtures/puzzles/${f}`, 'utf8')));
+    .map((f) => JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')));
+}
+
+/**
+ * serate.java:672-682, mirrored by Driver.loadGrid/newSolver. adjustPencilmarks
+ * runs unconditionally; rebuildPotentialValues runs only below 729 chars,
+ * because a pencilmark grid's loaded marks ARE its potentials.
+ */
+export function loadGrid(puzzle: string): Grid {
+  const grid = new Grid();
+  grid.fromString(puzzle);
+  grid.adjustPencilmarks();
+  return grid;
+}
+
+export function preparePotentials(grid: Grid, puzzle: string): void {
+  if (puzzle.length >= 81 && puzzle.length < 729) rebuildPotentialValues(grid);
 }
 
 function findHint(grid: Grid): Hint | null {
@@ -53,9 +69,8 @@ function removalsOf(hint: Hint): { cell: number; values: number[] }[] {
 }
 
 export function replayFixture(f: PuzzleFixture): void {
-  const grid = new Grid();
-  grid.fromString(f.puzzle);
-  rebuildPotentialValues(grid);
+  const grid = loadGrid(f.puzzle);
+  preparePotentials(grid, f.puzzle);
   for (const [i, step] of f.steps.entries()) {
     if (!PORTED_TECHNIQUE_NAMES.has(step.technique)) return; // verified prefix ends here
     const hint = findHint(grid);

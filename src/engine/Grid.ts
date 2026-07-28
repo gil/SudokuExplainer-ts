@@ -465,9 +465,20 @@ export class Grid {
   private cellPotentialValues: BitSet32[] = new Array(81);
   // Java field is named `isGiven`; renamed to avoid clashing with the method.
   private _isGiven: boolean[] = new Array(81).fill(false);
+  // 1 = Sudoku (default), 0 = Sukaku (set when pencilmarks are loaded). Only the
+  // Java GUI reads it, so nothing in scope branches on it; kept for fidelity.
+  private _isSudoku = 1;
 
   constructor() {
     for (let i = 0; i < 81; i++) this.cellPotentialValues[i] = new BitSet32();
+  }
+
+  isSudoku(): number {
+    return this._isSudoku;
+  }
+
+  setSukaku(): void {
+    this._isSudoku = 0;
   }
 
   static getCell(index: number): Cell {
@@ -585,6 +596,7 @@ export class Grid {
     return result;
   }
 
+  /** Rebuilds the grid from either 81 givens or 729 pencilmarks. */
   fromString(s: string): void {
     const len = s.length;
     if (len < 81) return; // ignore
@@ -599,9 +611,43 @@ export class Grid {
           this.setCellValue(i % 9, Math.trunc(i / 9), value);
         }
       }
+    } else {
+      for (let i = 0; i < 729; i++) {
+        const ch = s.charAt(i);
+        if (ch >= '1' && ch <= '9') {
+          const value = ch.charCodeAt(0) - '0'.charCodeAt(0);
+          // Java asserts the exact positional mapping value == 1 + i % 9.
+          this.addCellPotentialValue(Math.trunc(i / 9), value);
+        }
+      }
     }
-    // Sukaku 729-char pencilmark branch dropped (out of scope).
     this.fixGivens();
+  }
+
+  /**
+   * Applies Naked Singles that cause no direct eliminations, to settle the board
+   * immediately after loading pencilmarks. The Java version also has a forbidden
+   * pairs (NC) branch, which is variant-gated and out of scope here.
+   */
+  adjustPencilmarks(): void {
+    for (let i = 0; i < 81; i++) {
+      const cell = Grid.getCell(i);
+      const values = this.getCellPotentialValues(i);
+      if (values.cardinality() === 1) {
+        const singleclue = values.nextSetBit(0);
+        let isnakedsingle = true;
+        for (const cellIndex of cell.getVisibleCellIndexes()) {
+          if (this.hasCellPotentialValue(cellIndex, singleclue)) {
+            isnakedsingle = false;
+            break;
+          }
+        }
+        if (isnakedsingle) {
+          this.setCellValue(i % 9, Math.trunc(i / 9), singleclue);
+          this.clearCellPotentialValues(i);
+        }
+      }
+    }
   }
 
   toString81(): string {

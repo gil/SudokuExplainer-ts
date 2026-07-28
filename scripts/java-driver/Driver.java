@@ -90,13 +90,30 @@ public class Driver {
         }
     }
 
+    // serate.java:672-682 load sequence. adjustPencilmarks() runs unconditionally
+    // (a no-op for 81-char input, whose potentials are still empty), while
+    // rebuildPotentialValues() runs only below 729 chars: for a pencilmark grid
+    // the loaded marks ARE the potentials and must not be recomputed.
+    static Grid loadGrid(String puzzle) {
+        Grid grid = new Grid();
+        grid.fromString(puzzle);
+        grid.adjustPencilmarks();
+        return grid;
+    }
+
+    static Solver newSolver(Grid grid, String puzzle) {
+        Solver solver = new Solver(grid);
+        solver.want = 0;
+        if (puzzle.length() >= 81 && puzzle.length() < 729) {
+            solver.rebuildPotentialValues();
+        }
+        return solver;
+    }
+
     static void ratePuzzle(String id, String puzzle, String outDir) throws IOException {
         // validity
-        Grid vGrid = new Grid();
-        vGrid.fromString(puzzle);
-        Solver vSolver = new Solver(vGrid);
-        vSolver.want = 0;
-        vSolver.rebuildPotentialValues();
+        Grid vGrid = loadGrid(puzzle);
+        Solver vSolver = newSolver(vGrid, puzzle);
         Hint warning = vSolver.checkValidity();
         String validityJson = warning == null ? "null"
             : "{\"kind\":" + jstr(warning.getClass().getSimpleName())
@@ -105,11 +122,8 @@ public class Driver {
         // brute-force solution (valid puzzles only)
         String solutionJson = "null";
         if (warning == null) {
-            Grid sGrid = new Grid();
-            sGrid.fromString(puzzle);
-            Solver sSolver = new Solver(sGrid);
-            sSolver.want = 0;
-            sSolver.rebuildPotentialValues();
+            Grid sGrid = loadGrid(puzzle);
+            Solver sSolver = newSolver(sGrid, puzzle);
             Hint sol = sSolver.bruteForceSolve();
             // PORT-CHECK SolutionHint.java: apply() must fill the whole grid.
             // If it does not, read SolutionHint for a getter exposing the solution.
@@ -130,11 +144,8 @@ public class Driver {
         b.append("  \"validity\": ").append(validityJson).append(",\n");
         b.append("  \"solution\": ").append(solutionJson).append(",\n");
         if (warning == null) {
-            Grid grid = new Grid();
-            grid.fromString(puzzle);
-            Solver solver = new Solver(grid);
-            solver.want = 0;
-            solver.rebuildPotentialValues();
+            Grid grid = loadGrid(puzzle);
+            Solver solver = newSolver(grid, puzzle);
             Recorder rec = new Recorder();
             solver.getDifficulty(rec);
 

@@ -56,4 +56,55 @@ describe('Grid', () => {
     cancelPotentialValues(b);
     expect(a.getCellValue(0)).toBe(0); // deep copy
   });
+
+  describe('pencilmark (Sukaku) input', () => {
+    // A 729-char string maps position `cell * 9 + (value - 1)` to a candidate.
+    const marks = (cands: Record<number, number[]>): string => {
+      let out = '';
+      for (let i = 0; i < 81; i++) {
+        for (let v = 1; v <= 9; v++) out += cands[i]?.includes(v) ? String(v) : '.';
+      }
+      return out;
+    };
+
+    it('loads candidates and places nothing on its own', () => {
+      const g = new Grid();
+      g.fromString(marks({ 0: [1, 5], 1: [3] }));
+      expect(g.getCellPotentialValues(0).toArray()).toEqual([1, 5]);
+      expect(g.getCellPotentialValues(1).toArray()).toEqual([3]);
+      expect(g.getCellValue(0)).toBe(0);
+      expect(g.getCellValue(1)).toBe(0);
+    });
+
+    it('adjustPencilmarks places a lone candidate no peer shares', () => {
+      const g = new Grid();
+      g.fromString(marks({ 1: [3] }));
+      g.adjustPencilmarks();
+      expect(g.getCellValue(1)).toBe(3);
+      expect(g.getCellPotentialValues(1).toArray()).toEqual([]);
+    });
+
+    it('adjustPencilmarks leaves a lone candidate a peer still shares', () => {
+      const g = new Grid();
+      g.fromString(marks({ 1: [3], 2: [3, 7] })); // r1c2 and r1c3 both see 3
+      g.adjustPencilmarks();
+      expect(g.getCellValue(1)).toBe(0);
+      expect(g.getCellPotentialValues(1).toArray()).toEqual([3]);
+    });
+
+    it('is a no-op on 81-char input, whose potentials are still empty', () => {
+      const g = new Grid();
+      g.fromString(PUZZLE);
+      const before = g.toString81();
+      g.adjustPencilmarks();
+      expect(g.toString81()).toBe(before);
+    });
+
+    it('tracks isSudoku / setSukaku', () => {
+      const g = new Grid();
+      expect(g.isSudoku()).toBe(1);
+      g.setSukaku();
+      expect(g.isSudoku()).toBe(0);
+    });
+  });
 });
