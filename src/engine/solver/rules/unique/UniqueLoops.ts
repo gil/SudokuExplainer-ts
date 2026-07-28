@@ -1,4 +1,5 @@
 import { Cell } from '../../../Cell.js';
+import { Settings } from '../../../Settings.js';
 import { Grid, type Region } from '../../../Grid.js';
 import { BitSet32 } from '../../../util/BitSet32.js';
 import { CellSet } from '../../../tools/CellSet.js';
@@ -107,6 +108,11 @@ export class UniqueLoops implements IndirectHintProducer {
     results: Cell[][],
   ): void {
     loop.push(cell);
+    // With the lksudoku fix on, each candidate cell gets a fresh clone of
+    // exValues. With it off, exValues is cloned once here and then mutated in
+    // place, so extra values leak between sibling cells of the same region.
+    const lkFix = Settings.getInstance().islkSudokuURUL();
+    if (!lkFix) exValues = exValues.clone(); // Ensure we cleanup ourself
     for (let regionTypeIndex = 0; regionTypeIndex < 3; regionTypeIndex++) {
       if (regionTypeIndex !== lastRegionTypeIndex) {
         const region = Grid.getRegionAt(regionTypeIndex, cell.getIndex());
@@ -118,11 +124,19 @@ export class UniqueLoops implements IndirectHintProducer {
           } else if (!loop.some((c) => c.equals(next))) {
             const potentials = grid.getCellPotentialValues(next.getIndex());
             if (potentials.get(v1) && potentials.get(v2)) {
-              const newExValues = exValues.clone(); // Ensure we cleanup ourself
+              const newExValues = lkFix ? exValues.clone() : exValues;
               newExValues.or(potentials);
               newExValues.clear(v1);
               newExValues.clear(v2);
               const cardinality = potentials.cardinality();
+              /*
+               * We can continue if
+               * (1) The cell has exactly the two values of the loop
+               * (2) The cell has one extra value, the same as all previous cells with
+               * an extra value (for type 2 only)
+               * (3) The cell has extra values and the maximum number of cells with
+               * extra values, 2, is not reached
+               */
               if (cardinality === 2 || newExValues.cardinality() === 1 || allowedEx > 0) {
                 let newAllowedEx = allowedEx;
                 if (cardinality > 2) newAllowedEx -= 1;
@@ -207,8 +221,13 @@ export class UniqueLoops implements IndirectHintProducer {
     extra.or(grid.getCellPotentialValues(c2.getIndex()));
     extra.clear(v1);
     extra.clear(v2);
-    // Look for Naked and hidden Sets. Iterate on degree
-    for (let degree = 2; degree <= 7; degree++) {
+    // Look for Naked and hidden Sets. Iterate on degree.
+    // The lksudoku fix starts the degree loop at 2 and guards the naked-set
+    // search with `degree >= extra.cardinality()`. Without it the loop starts at
+    // extra.cardinality() instead, which makes the guard redundant for naked
+    // sets but also skips the lower degrees for the hidden-set search below.
+    const lkFix = Settings.getInstance().islkSudokuURUL();
+    for (let degree = lkFix ? 2 : extra.cardinality(); degree <= 7; degree++) {
       for (let regionTypeIndex = 0; regionTypeIndex < 3; regionTypeIndex++) {
         const region = Grid.getRegionAt(regionTypeIndex, c1.getIndex());
         if (region === Grid.getRegionAt(regionTypeIndex, c2.getIndex())) {
@@ -218,7 +237,7 @@ export class UniqueLoops implements IndirectHintProducer {
           const index2 = region.indexOf(c2);
 
           // Look for naked sets
-          if (degree * 2 <= nbEmptyCells && degree >= extra.cardinality()) {
+          if (degree * 2 <= nbEmptyCells && (!lkFix || degree >= extra.cardinality())) {
             // Look on combinations of cells that include c1 but not c2
             const perm2 = new Permutations(degree, 9);
             while (perm2.hasNext()) {
