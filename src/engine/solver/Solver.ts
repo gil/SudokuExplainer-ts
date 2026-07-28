@@ -1,6 +1,6 @@
 import { Grid } from '../Grid.js';
 import { SolvingTechnique } from '../SolvingTechnique.js';
-import { defaultTechniques, isBlocks } from '../Options.js';
+import { Settings } from '../Settings.js';
 import { InterruptedError } from '../util/InterruptedError.js';
 import type { Hint } from './Hint.js';
 import type { HintProducer, IndirectHintProducer, WarningHintProducer } from './HintProducer.js';
@@ -97,13 +97,15 @@ export function buildProducerTiers(techniques: Set<SolvingTechnique>): ProducerT
     }
   };
 
+  const settings = Settings.getInstance();
+
   addD(SolvingTechnique.HiddenSingle, new HiddenSingle());
-  if (isBlocks) addD(SolvingTechnique.DirectPointing, new Locking(true));
+  if (settings.isBlocks()) addD(SolvingTechnique.DirectPointing, new Locking(true));
   addD(SolvingTechnique.DirectHiddenPair, new HiddenSet(2, true));
   addD(SolvingTechnique.NakedSingle, new NakedSingle());
   addD(SolvingTechnique.DirectHiddenTriplet, new HiddenSet(3, true));
 
-  if (isBlocks) addI(SolvingTechnique.PointingClaiming, indirect, new Locking(false));
+  if (settings.isBlocks()) addI(SolvingTechnique.PointingClaiming, indirect, new Locking(false));
   addI(SolvingTechnique.NakedPair, indirect, new NakedSet(2));
   addI(SolvingTechnique.XWing, indirect, new Fisherman(2));
   addI(SolvingTechnique.HiddenPair, indirect, new HiddenSet(2, false));
@@ -189,7 +191,9 @@ export class Solver {
   private isUsingAdvanced = false;
   private readonly techniqueByProducer: Map<HintProducer, SolvingTechnique>;
 
-  constructor(grid: Grid, techniques: Set<SolvingTechnique> = defaultTechniques()) {
+  // Java reads Settings.getInstance().getTechniques() inside addIfWorth. The
+  // explicit argument stays as an override for the API layer and tests.
+  constructor(grid: Grid, techniques: Set<SolvingTechnique> = Settings.getInstance().getTechniques()) {
     this.grid = grid;
     const tiers = buildProducerTiers(techniques);
     this.techniqueByProducer = tiers.techniqueByProducer;

@@ -1,5 +1,5 @@
 import type { Grid, Region } from '../../Grid.js';
-import { variantString, isBlocks } from '../../Options.js';
+import { variantString, isBlocks } from '../../Settings.js';
 import type { Rule } from '../Rule.js';
 import type { WarningHintProducer } from '../HintProducer.js';
 import { WarningHint } from '../WarningHint.js';

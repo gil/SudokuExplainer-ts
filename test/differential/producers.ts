@@ -1,6 +1,6 @@
 import type { HintProducer } from '../../src/engine/solver/HintProducer.js';
 import { buildProducerTiers } from '../../src/engine/solver/Solver.js';
-import { defaultTechniques } from '../../src/engine/Options.js';
+import { defaultTechniques } from '../../src/engine/Settings.js';
 
 // The registration order now lives in exactly one place: Solver.buildProducerTiers
 // (the Solver constructor consumes it too). currentProducers flattens the tiers

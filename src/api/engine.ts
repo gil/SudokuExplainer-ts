@@ -1,6 +1,6 @@
 import { Grid } from '../engine/Grid.js';
 import { SolvingTechnique } from '../engine/SolvingTechnique.js';
-import { defaultTechniques } from '../engine/Options.js';
+import { Settings, snapshotSettings, restoreSettings } from '../engine/Settings.js';
 import { Solver, CancelledError } from '../engine/solver/Solver.js';
 import type { Hint as EngineHint } from '../engine/solver/Hint.js';
 import type { Rule } from '../engine/solver/Rule.js';
@@ -19,8 +19,28 @@ import { toPublicHint, type Hint } from './hint.js';
 import { InvalidGridError, BeyondSolverError } from './errors.js';
 import { resolveDifficulty, type GenerateOptions, type GeneratedPuzzle } from './generate.js';
 
+/**
+ * Java Settings flags that change solving behaviour. Defaults match the Java
+ * defaults, which is what serate uses when the corresponding flag is absent.
+ */
+export interface EngineSettings {
+  /** serate -r. 0: fork rule order and ratings. 1: revised order and ratings. */
+  revisedRating?: number;
+  /** serate -b. 0: off. 1, 2: lkSudoku revised batch solving. */
+  batchSolving?: number;
+  /** serate -F. 0: as SE 1.2.1. 1, 2: more non-trivial implications in FC+. */
+  FCPlus?: number;
+  /** lkSudoku's BUG fix. Java default true. */
+  islkSudokuBUG?: boolean;
+  /** lkSudoku's UR/UL fix. Java default true. */
+  islkSudokuURUL?: boolean;
+  /** SE 1.2.1 technique set. Java default false. */
+  isBringBackSE121?: boolean;
+}
+
 export interface EngineOptions {
   techniques?: SolvingTechnique[]; // default: all in-scope techniques
+  settings?: EngineSettings;
 }
 
 export interface Hooks {
@@ -91,14 +111,43 @@ function validityKind(hint: EngineHint): ValidityWarning['kind'] {
 }
 
 class EngineImpl implements Engine {
-  private readonly techniques: Set<SolvingTechnique>;
+  /** undefined means "whatever Settings holds", so isBringBackSE121 can drive it. */
+  private readonly techniques: Set<SolvingTechnique> | undefined;
+  private readonly settings: EngineSettings;
 
-  constructor(techniques: Set<SolvingTechnique>) {
+  constructor(techniques: Set<SolvingTechnique> | undefined, settings: EngineSettings) {
     this.techniques = techniques;
+    this.settings = settings;
+  }
+
+  /**
+   * The engine reads Settings.getInstance() the way Java does, so this applies
+   * the engine's config to the singleton and restores the previous values on
+   * the way out. Nesting is safe: each call restores what it saw. The engine is
+   * not safe for concurrent use with differing settings, same as Java.
+   */
+  private withSettings<T>(fn: () => T): T {
+    const snap = snapshotSettings();
+    const s = Settings.getInstance();
+    const cfg = this.settings;
+    if (cfg.revisedRating !== undefined) s.setRevisedRating(cfg.revisedRating);
+    if (cfg.batchSolving !== undefined) s.setBatchSolving(cfg.batchSolving);
+    if (cfg.FCPlus !== undefined) s.setFCPlus(cfg.FCPlus);
+    if (cfg.islkSudokuBUG !== undefined) s.setlkSudokuBUG(cfg.islkSudokuBUG);
+    if (cfg.islkSudokuURUL !== undefined) s.setlkSudokuURUL(cfg.islkSudokuURUL);
+    if (cfg.isBringBackSE121 !== undefined) {
+      s.setBringBackSE121(cfg.isBringBackSE121);
+      if (cfg.isBringBackSE121) s.settingsBBSE121();
+    }
+    try {
+      return fn();
+    } finally {
+      restoreSettings(snap);
+    }
   }
 
   private newSolver(grid: Grid): Solver {
-    const solver = new Solver(grid, this.techniques);
+    const solver = new Solver(grid, this.techniques ?? Settings.getInstance().getTechniques());
     solver.rebuildPotentialValues();
     return solver;
   }
@@ -109,114 +158,130 @@ class EngineImpl implements Engine {
   }
 
   rate(grid: GridInput, hooks?: Hooks): Rating {
-    const solver = this.newSolver(makeGrid(grid));
-    solver.getDifficulty(hooks);
-    return {
-      er: solver.difficulty,
-      ep: solver.pearl,
-      ed: solver.diamond,
-      erTechnique: solver.ERtN,
-      epTechnique: solver.EPtN,
-      edTechnique: solver.EDtN,
-      erTechniqueShort: solver.shortERtN,
-      epTechniqueShort: solver.shortEPtN,
-      edTechniqueShort: solver.shortEDtN,
-    };
+    return this.withSettings(() => {
+      const solver = this.newSolver(makeGrid(grid));
+      solver.getDifficulty(hooks);
+      return {
+        er: solver.difficulty,
+        ep: solver.pearl,
+        ed: solver.diamond,
+        erTechnique: solver.ERtN,
+        epTechnique: solver.EPtN,
+        edTechnique: solver.EDtN,
+        erTechniqueShort: solver.shortERtN,
+        epTechniqueShort: solver.shortEPtN,
+        edTechniqueShort: solver.shortEDtN,
+      };
+    });
   }
 
   solvePath(grid: GridInput, hooks?: Hooks): { steps: Step[]; complete: boolean } {
-    const g = makeGrid(grid);
-    const solver = this.newSolver(g);
-    const steps: Step[] = [];
-    let stepCount = 0;
-    while (!g.isSolved()) {
-      if (hooks?.shouldCancel?.()) throw new CancelledError();
-      const hint = solver.getSingleHint();
-      if (hint === null) break; // beyond solver: stop with the path so far
-      const gridBefore = gridValues(g);
-      const publicHint = this.toHint(hint, g, solver);
-      steps.push({ hint: publicHint, gridBefore });
-      hint.apply(g);
-      hooks?.onProgress?.({ step: ++stepCount, difficulty: (hint as unknown as Rule).getDifficulty() });
-    }
-    return { steps, complete: g.isSolved() };
+    return this.withSettings(() => {
+      const g = makeGrid(grid);
+      const solver = this.newSolver(g);
+      const steps: Step[] = [];
+      let stepCount = 0;
+      while (!g.isSolved()) {
+        if (hooks?.shouldCancel?.()) throw new CancelledError();
+        const hint = solver.getSingleHint();
+        if (hint === null) break; // beyond solver: stop with the path so far
+        const gridBefore = gridValues(g);
+        const publicHint = this.toHint(hint, g, solver);
+        steps.push({ hint: publicHint, gridBefore });
+        hint.apply(g);
+        hooks?.onProgress?.({ step: ++stepCount, difficulty: (hint as unknown as Rule).getDifficulty() });
+      }
+      return { steps, complete: g.isSolved() };
+    });
   }
 
   getHint(grid: GridInput): Hint | null {
-    const g = makeGrid(grid);
-    const solver = this.newSolver(g);
-    const hint = solver.getSingleHint();
-    return hint === null ? null : this.toHint(hint, g, solver);
+    return this.withSettings(() => {
+      const g = makeGrid(grid);
+      const solver = this.newSolver(g);
+      const hint = solver.getSingleHint();
+      return hint === null ? null : this.toHint(hint, g, solver);
+    });
   }
 
   getAllHints(grid: GridInput): Hint[] {
-    const g = makeGrid(grid);
-    const solver = this.newSolver(g);
-    // Warning/validator hints carry no technique; keep only solving hints.
-    return solver
-      .getAllHints()
-      .filter((h) => solver.getTechnique(h.getRule()) !== undefined)
-      .map((h) => this.toHint(h, g, solver));
+    return this.withSettings(() => {
+      const g = makeGrid(grid);
+      const solver = this.newSolver(g);
+      // Warning/validator hints carry no technique; keep only solving hints.
+      return solver
+        .getAllHints()
+        .filter((h) => solver.getTechnique(h.getRule()) !== undefined)
+        .map((h) => this.toHint(h, g, solver));
+    });
   }
 
   solve(grid: GridInput): number[] {
-    const g = makeGrid(grid);
-    const solver = this.newSolver(g);
-    const hint = solver.bruteForceSolve();
-    if (!(hint instanceof SolutionHint)) {
-      throw new InvalidGridError(hint?.toString() ?? 'The Sudoku has no solution');
-    }
-    hint.apply(g);
-    return gridValues(g);
+    return this.withSettings(() => {
+      const g = makeGrid(grid);
+      const solver = this.newSolver(g);
+      const hint = solver.bruteForceSolve();
+      if (!(hint instanceof SolutionHint)) {
+        throw new InvalidGridError(hint?.toString() ?? 'The Sudoku has no solution');
+      }
+      hint.apply(g);
+      return gridValues(g);
+    });
   }
 
   analyze(grid: GridInput, hooks?: Hooks): Analysis {
-    const solver = this.newSolver(makeGrid(grid));
-    let rules;
-    try {
-      rules = solver.solve(hooks);
-    } catch (e) {
-      if (e instanceof BeyondSolverInternalError) throw new BeyondSolverError(e.message);
-      throw e;
-    }
-    let difficulty = 0;
-    for (const rule of rules.keys()) {
-      if (rule.getDifficulty() > difficulty) difficulty = rule.getDifficulty();
-    }
-    const named = solver.toNamedList(rules);
-    const steps = [...named.entries()].map(([technique, count]) => ({ technique, count }));
-    return { difficulty, steps };
+    return this.withSettings(() => {
+      const solver = this.newSolver(makeGrid(grid));
+      let rules;
+      try {
+        rules = solver.solve(hooks);
+      } catch (e) {
+        if (e instanceof BeyondSolverInternalError) throw new BeyondSolverError(e.message);
+        throw e;
+      }
+      let difficulty = 0;
+      for (const rule of rules.keys()) {
+        if (rule.getDifficulty() > difficulty) difficulty = rule.getDifficulty();
+      }
+      const named = solver.toNamedList(rules);
+      const steps = [...named.entries()].map(([technique, count]) => ({ technique, count }));
+      return { difficulty, steps };
+    });
   }
 
   checkValidity(grid: GridInput): ValidityWarning | null {
-    const g = makeGrid(grid);
-    const solver = this.newSolver(g);
-    const hint = solver.checkValidity();
-    if (hint === null) return null;
-    const explanation = hint.toHtml(g);
-    return {
-      kind: validityKind(hint),
-      message: hint.toString(),
-      explain: () => explanation,
-    };
+    return this.withSettings(() => {
+      const g = makeGrid(grid);
+      const solver = this.newSolver(g);
+      const hint = solver.checkValidity();
+      if (hint === null) return null;
+      const explanation = hint.toHtml(g);
+      return {
+        kind: validityKind(hint),
+        message: hint.toString(),
+        explain: () => explanation,
+      };
+    });
   }
 
   generate(options?: GenerateOptions): GeneratedPuzzle | null {
-    const { min, max } = resolveDifficulty(options?.difficulty);
-    const symmetries = options?.symmetries ?? DEFAULT_SYMMETRIES;
-    const rnd = options?.seed !== undefined ? new JavaRandom(options.seed) : new JavaRandom();
-    const onProgress = options?.onProgress;
-    const grid = new Generator().generate(symmetries, min, max, rnd, {
-      shouldCancel: options?.shouldCancel,
-      onAttempt: onProgress ? (attempt) => onProgress({ attempt }) : undefined,
+    return this.withSettings(() => {
+      const { min, max } = resolveDifficulty(options?.difficulty);
+      const symmetries = options?.symmetries ?? DEFAULT_SYMMETRIES;
+      const rnd = options?.seed !== undefined ? new JavaRandom(options.seed) : new JavaRandom();
+      const onProgress = options?.onProgress;
+      const grid = new Generator().generate(symmetries, min, max, rnd, {
+        shouldCancel: options?.shouldCancel,
+        onAttempt: onProgress ? (attempt) => onProgress({ attempt }) : undefined,
+      });
+      if (grid === null) return null;
+      const puzzle = gridValues(grid);
+      return { puzzle, solution: this.solve(puzzle), rating: this.rate(puzzle) };
     });
-    if (grid === null) return null;
-    const puzzle = gridValues(grid);
-    return { puzzle, solution: this.solve(puzzle), rating: this.rate(puzzle) };
   }
 }
 
 export function createEngine(options?: EngineOptions): Engine {
-  const techniques = options?.techniques ? new Set(options.techniques) : defaultTechniques();
-  return new EngineImpl(techniques);
+  const techniques = options?.techniques ? new Set(options.techniques) : undefined;
+  return new EngineImpl(techniques, options?.settings ?? {});
 }

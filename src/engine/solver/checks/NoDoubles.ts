@@ -1,7 +1,7 @@
 import { Cell } from '../../Cell.js';
 import { Grid, type Region } from '../../Grid.js';
 import { BitSet32 } from '../../util/BitSet32.js';
-import { variantString, isBlocks } from '../../Options.js';
+import { variantString, isBlocks } from '../../Settings.js';
 import type { HintsAccumulator, WarningHintProducer } from '../HintProducer.js';
 import { WarningMessage } from './WarningMessage.js';
 

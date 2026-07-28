@@ -1,6 +1,6 @@
 import { Cell } from '../../Cell.js';
 import { Grid } from '../../Grid.js';
-import { variantString, isBlocks } from '../../Options.js';
+import { variantString, isBlocks } from '../../Settings.js';
 import { JavaRandom } from '../../util/JavaRandom.js';
 import { rebuildPotentialValues } from '../potentials.js';
 import type { HintsAccumulator, WarningHintProducer } from '../HintProducer.js';

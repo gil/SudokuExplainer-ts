@@ -2,7 +2,7 @@ import type { Cell } from '../../Cell.js';
 import { Grid, type Region } from '../../Grid.js';
 import { BitSet32 } from '../../util/BitSet32.js';
 import { SingletonBitSet } from '../../tools/SingletonBitSet.js';
-import { variantString, isBlocks } from '../../Options.js';
+import { variantString, isBlocks } from '../../Settings.js';
 import type { WarningHintProducer } from '../HintProducer.js';
 import { WarningHint } from '../WarningHint.js';
 import * as templates from '../../../templates/checks.js';
