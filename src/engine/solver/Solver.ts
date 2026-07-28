@@ -6,6 +6,7 @@ import type { Hint } from './Hint.js';
 import type { HintProducer, IndirectHintProducer, WarningHintProducer } from './HintProducer.js';
 import type { Rule } from './Rule.js';
 import { SingleHintAccumulator } from './SingleHintAccumulator.js';
+import { SmallestHintsAccumulator } from './SmallestHintsAccumulator.js';
 import { DefaultHintsAccumulator } from './DefaultHintsAccumulator.js';
 import { BeyondSolverInternalError } from './BeyondSolverInternalError.js';
 import { rebuildPotentialValues, cancelPotentialValues } from './potentials.js';
@@ -38,11 +39,22 @@ import { Chaining } from './rules/chaining/Chaining.js';
 // Ported from diuf.sudoku.solver.Solver.
 //
 // Omitted on purpose (not needed by the public API): the GUI replay helpers
-// gatherHints/gatherProducer, getHintsHint, and the batch path
-// getBatchDifficulty with its SmallestHintsAccumulator. The Asker argument is
-// dropped everywhere: the port always proceeds as if the user answered yes,
-// keeping the isUsingAdvanced bookkeeping. Both revisedRating branches of the
-// Java constructor are ported.
+// gatherHints/gatherProducer and getHintsHint. The Asker argument is dropped
+// everywhere: the port always proceeds as if the user answered yes, keeping the
+// isUsingAdvanced bookkeeping. Both revisedRating branches of the Java
+// constructor are ported, as is the batch path (getBatchDifficulty and
+// SmallestHintsAccumulator) minus serate's Formatter text output.
+
+/**
+ * Stands in for serate.Formatter, which getBatchDifficulty takes in Java. Only
+ * the callback surface is ported; serate's text output is out of scope.
+ */
+export interface BatchHooks {
+  beforePuzzle?: (solver: Solver) => void;
+  beforeHint?: (solver: Solver) => void;
+  afterHint?: (solver: Solver, hint: Hint) => void;
+  afterPuzzle?: (solver: Solver) => void;
+}
 
 export interface SolverHooks {
   shouldCancel?: () => boolean;
@@ -563,6 +575,115 @@ export class Solver {
           break;
         }
       }
+    } finally {
+      backupGrid.copyTo(this.grid);
+    }
+  }
+
+  /**
+   * Ported from Solver.getBatchDifficulty (serate -b). Instead of taking one
+   * hint per step, it collects every hint of the smallest rating and applies
+   * them all before looking again.
+   *
+   * Java threads a serate.Formatter through for its CLI output. serate is out
+   * of scope, so the hooks below carry the same callbacks and default to no-ops:
+   * the engine semantics are ported, the CLI's text formatting is not.
+   */
+  getBatchDifficulty(hooks?: BatchHooks): void {
+    const backupGrid = new Grid();
+    this.grid.copyTo(backupGrid);
+    try {
+      this.difficulty = 0;
+      this.pearl = 0.0;
+      this.diamond = 0.0;
+      this.ERtN = 'No solution';
+      this.EPtN = 'No solution';
+      this.EDtN = 'No solution';
+      this.shortERtN = 'O';
+      this.shortEPtN = 'O';
+      this.shortEDtN = 'O';
+      // Same validity guard as getDifficulty: the Java loop never returns on an
+      // under-constrained grid, so the port only rates valid puzzles.
+      if (this.checkValidity() !== null) return;
+      hooks?.beforePuzzle?.(this);
+      while (!this.grid.isSolved()) {
+        hooks?.beforeHint?.(this);
+        const result: Hint[] = [];
+        const accu = new SmallestHintsAccumulator(result, this.difficulty);
+        try {
+          for (const producer of this.directHintProducers) {
+            producer.getHints(this.grid, accu);
+            if (result.length !== 0) throw new InterruptedError();
+          }
+          for (const producer of this.indirectHintProducers) {
+            producer.getHints(this.grid, accu);
+            if (result.length !== 0) throw new InterruptedError();
+          }
+          for (const producer of this.chainingHintProducers) {
+            producer.getHints(this.grid, accu);
+            if (result.length !== 0) throw new InterruptedError();
+          }
+          for (const producer of this.chainingHintProducers2) {
+            producer.getHints(this.grid, accu);
+            if (result.length !== 0) throw new InterruptedError();
+          }
+          for (const producer of this.advancedHintProducers) {
+            producer.getHints(this.grid, accu);
+            if (result.length !== 0) throw new InterruptedError();
+          }
+          for (const producer of this.experimentalHintProducers) {
+            producer.getHints(this.grid, accu);
+            if (result.length !== 0) throw new InterruptedError();
+          }
+        } catch (willHappen) {
+          if (!(willHappen instanceof InterruptedError)) throw willHappen;
+        }
+        if (result.length === 0) {
+          this.difficulty = 20.0;
+          this.ERtN = 'Beyond solver';
+          this.shortERtN = 'xx';
+          break;
+        }
+        // apply hints of same rating
+        for (const hint of result) {
+          const rule = hint as unknown as Rule;
+          const ruleDiff = rule.getDifficulty();
+          const ruleName = rule.getName();
+          const ruleNameShort = rule.getShortName();
+          if (ruleDiff > this.difficulty) {
+            this.difficulty = ruleDiff;
+            this.ERtN = ruleName;
+            this.shortERtN = ruleNameShort;
+          }
+          hint.apply(this.grid);
+          hooks?.afterHint?.(this, hint);
+          if (this.pearl === 0.0) {
+            if (this.diamond === 0.0) {
+              this.diamond = this.difficulty;
+              this.EDtN = this.ERtN;
+              this.shortEDtN = this.shortERtN;
+            }
+            if (hint.getCell() !== null) {
+              if (this.want === 100 /* 'd' */ && this.difficulty > this.diamond) {
+                this.difficulty = 20.0;
+                this.ERtN = 'Beyond solver';
+                this.shortERtN = 'xx';
+                break;
+              }
+              this.pearl = this.difficulty;
+              this.EPtN = this.ERtN;
+              this.shortEPtN = this.shortERtN;
+            }
+          } else if (this.want !== 0 && this.difficulty > this.pearl) {
+            this.difficulty = 20.0;
+            this.ERtN = 'Beyond solver';
+            this.shortERtN = 'xx';
+            break;
+          }
+        }
+        if (this.difficulty === 20.0) break;
+      }
+      hooks?.afterPuzzle?.(this);
     } finally {
       backupGrid.copyTo(this.grid);
     }

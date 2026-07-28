@@ -147,7 +147,12 @@ public class Driver {
             Grid grid = loadGrid(puzzle);
             Solver solver = newSolver(grid, puzzle);
             Recorder rec = new Recorder();
-            solver.getDifficulty(rec);
+            // serate.java:682-686 picks the loop by batchSolving. In batch mode
+            // beforeHint fires once per batch while afterHint fires per hint, so
+            // gridBefore repeats within a batch. That is Java's own behaviour and
+            // the TS batch replay mirrors it.
+            if (Settings.getInstance().batchSolving() < 1) solver.getDifficulty(rec);
+            else solver.getBatchDifficulty(rec);
 
             b.append("  \"rating\": {");
             b.append("\"er\":").append(solver.difficulty);
