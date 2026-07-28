@@ -8,10 +8,20 @@ import type { IndirectHintProducer, HintsAccumulator } from '../../HintProducer.
 import { SingleHintAccumulator } from '../../SingleHintAccumulator.js';
 import type { IndirectHint } from '../../IndirectHint.js';
 import type { HasParentPotentialHint } from '../HasParentPotentialHint.js';
+import { Settings } from '../../../Settings.js';
 import { Locking } from '../Locking.js';
 import { HiddenSet } from '../HiddenSet.js';
 import { NakedSet } from '../NakedSet.js';
 import { Fisherman } from '../Fisherman.js';
+// Only reachable when Settings.FCPlus() > 0; none of these import Chaining back.
+import { TurbotFish } from '../TurbotFish.js';
+import { XYWing } from '../XYWing.js';
+import { StrongLinks } from '../StrongLinks.js';
+import { WXYZWing } from '../WXYZWing.js';
+import { VWXYZWing } from '../VWXYZWing.js';
+import { AlignedExclusion } from '../AlignedExclusion.js';
+import { UniqueLoops } from '../unique/UniqueLoops.js';
+import { BivalueUniversalGrave } from '../unique/BivalueUniversalGrave.js';
 import { Potential } from './Potential.js';
 import { ChainingHint, getNestedSuffix } from './ChainingHint.js';
 import { BinaryChainingHint } from './BinaryChainingHint.js';
@@ -769,12 +779,30 @@ export class Chaining implements IndirectHintProducer {
   ): Potential[] {
     const result: Potential[] = [];
     if (this.otherRules === null) {
+      const settings = Settings.getInstance();
       this.otherRules = [];
-      this.otherRules.push(new Locking(false));
+      // Settings.isVLatin() is frozen true; the else branch is variant-only.
+      if (settings.isBlocks()) this.otherRules.push(new Locking(false));
       this.otherRules.push(new HiddenSet(2, false));
       this.otherRules.push(new NakedSet(2));
       this.otherRules.push(new Fisherman(2));
-      // FCPlus == 0: the FCPlus > 0 / > 1 additions are dropped.
+      // FCPlus controls how many non-trivial implications are added.
+      if (settings.FCPlus() > 0) {
+        this.otherRules.push(new TurbotFish());
+        this.otherRules.push(new XYWing(false));
+        this.otherRules.push(new XYWing(true));
+      }
+      if (settings.FCPlus() > 1) {
+        this.otherRules.push(new HiddenSet(3, false));
+        this.otherRules.push(new NakedSet(3));
+        this.otherRules.push(new Fisherman(3));
+        this.otherRules.push(new StrongLinks(3));
+        this.otherRules.push(new WXYZWing());
+        this.otherRules.push(new VWXYZWing());
+        this.otherRules.push(new AlignedExclusion(3));
+        this.otherRules.push(new UniqueLoops());
+        this.otherRules.push(new BivalueUniversalGrave());
+      }
       if (this.level < 4) {
         if (this.level >= 2)
           this.otherRules.push(new Chaining(false, false, false, 0, true, 0)); // Forcing chains
