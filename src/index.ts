@@ -1,4 +1,4 @@
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 
 export { SolvingTechnique } from './engine/SolvingTechnique.js';
 export { Symmetry, DEFAULT_SYMMETRIES } from './engine/generator/Symmetry.js';
@@ -10,14 +10,22 @@ export type {
   CandidateRef,
   RegionRef,
   GridInput,
+  CandidateInput,
 } from './api/refs.js';
-export { toCellRef, toCandidateRef, toRegionRef, parseGrid } from './api/refs.js';
+export {
+  toCellRef,
+  toCandidateRef,
+  toRegionRef,
+  parseGrid,
+  parseCandidates,
+} from './api/refs.js';
 
 export type { Hint, Highlights } from './api/hint.js';
 
 export type {
   Engine,
   EngineOptions,
+  HintOptions,
   Hooks,
   Rating,
   Step,
@@ -32,7 +40,15 @@ export type {
   GeneratedPuzzle,
 } from './api/generate.js';
 
-import { createEngine, type Engine, type Hooks, type Rating, type Step, type ValidityWarning } from './api/engine.js';
+import {
+  createEngine,
+  type Engine,
+  type HintOptions,
+  type Hooks,
+  type Rating,
+  type Step,
+  type ValidityWarning,
+} from './api/engine.js';
 import type { Hint } from './api/hint.js';
 import type { GridInput } from './api/refs.js';
 import type { GenerateOptions, GeneratedPuzzle } from './api/generate.js';
@@ -51,8 +67,12 @@ export function solvePath(grid: GridInput, hooks?: Hooks): { steps: Step[]; comp
   return engine().solvePath(grid, hooks);
 }
 
-export function getHint(grid: GridInput): Hint | null {
-  return engine().getHint(grid);
+export function getHint(grid: GridInput, options?: HintOptions): Hint | null {
+  return engine().getHint(grid, options);
+}
+
+export function getAllHints(grid: GridInput, options?: HintOptions): Hint[] {
+  return engine().getAllHints(grid, options);
 }
 
 export function solve(grid: GridInput): number[] {

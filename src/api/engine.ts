@@ -14,7 +14,13 @@ import { NumberOfValues } from '../engine/solver/checks/NumberOfValues.js';
 import { Generator } from '../engine/generator/Generator.js';
 import { DEFAULT_SYMMETRIES } from '../engine/generator/Symmetry.js';
 import { JavaRandom } from '../engine/util/JavaRandom.js';
-import { parseGrid, type GridInput } from './refs.js';
+import {
+  parseGrid,
+  parseCandidates,
+  toCellRef,
+  type CandidateInput,
+  type GridInput,
+} from './refs.js';
 import { toPublicHint, type Hint } from './hint.js';
 import { InvalidGridError, BeyondSolverError } from './errors.js';
 import { resolveDifficulty, type GenerateOptions, type GeneratedPuzzle } from './generate.js';
@@ -82,22 +88,58 @@ export interface ValidityWarning {
   explain(): string;
 }
 
+export interface HintOptions {
+  /**
+   * Player pencil marks to solve from, instead of the candidates derived from
+   * the placed digits. Placed digits still come from the grid argument.
+   */
+  candidates?: CandidateInput;
+}
+
 export interface Engine {
   rate(grid: GridInput, hooks?: Hooks): Rating;
   solvePath(grid: GridInput, hooks?: Hooks): { steps: Step[]; complete: boolean };
-  getHint(grid: GridInput): Hint | null;
-  getAllHints(grid: GridInput): Hint[];
+  getHint(grid: GridInput, options?: HintOptions): Hint | null;
+  getAllHints(grid: GridInput, options?: HintOptions): Hint[];
   solve(grid: GridInput): number[];
   analyze(grid: GridInput, hooks?: Hooks): Analysis;
   checkValidity(grid: GridInput): ValidityWarning | null;
   generate(options?: GenerateOptions): GeneratedPuzzle | null;
 }
 
-function makeGrid(input: GridInput): Grid {
+function makeGrid(input: GridInput, candidates?: CandidateInput): Grid {
   const values = parseGrid(input);
   const grid = new Grid();
   grid.fromString(values.map((v) => (v === 0 ? '.' : String(v))).join(''));
+  if (candidates !== undefined) loadCandidates(grid, parseCandidates(candidates));
   return grid;
+}
+
+/**
+ * Sukaku load: the supplied marks become the potentials of every empty cell,
+ * replacing the 1..9 set rebuildPotentialValues would lay down. A cell that
+ * holds a digit keeps no potentials, whatever its mask says. Marks the grid as
+ * Sukaku so newSolver knows not to rebuild over them.
+ */
+function loadCandidates(grid: Grid, masks: number[]): void {
+  for (let i = 0; i < 81; i++) {
+    grid.clearCellPotentialValues(i);
+    if (grid.getCellValue(i) !== 0) continue;
+    for (let value = 1; value <= 9; value++) {
+      if (masks[i] & (1 << (value - 1))) grid.addCellPotentialValue(i, value);
+    }
+  }
+  grid.setSukaku();
+}
+
+// An empty cell with no candidate left is a contradiction, not a puzzle. Runs
+// after cancelPotentialValues, so it also catches a mark a placed peer kills.
+function checkCandidates(grid: Grid): void {
+  for (let i = 0; i < 81; i++) {
+    if (grid.getCellValue(i) === 0 && grid.getCellPotentialValues(i).isEmpty()) {
+      throw new InvalidGridError(`Cell ${toCellRef(i).name} is empty but has no candidates`);
+    }
+  }
 }
 
 function gridValues(grid: Grid): number[] {
@@ -155,7 +197,15 @@ class EngineImpl implements Engine {
 
   private newSolver(grid: Grid): Solver {
     const solver = new Solver(grid, this.techniques ?? Settings.getInstance().getTechniques());
-    solver.rebuildPotentialValues();
+    if (grid.isSudoku() === 0) {
+      // Loaded pencil marks ARE the potentials, so rebuilding would erase them.
+      // Cancelling can only shrink a mark set, which keeps the grid sound and
+      // forgives a stale mark a placed peer already rules out.
+      solver.cancelPotentialValues();
+      checkCandidates(grid);
+    } else {
+      solver.rebuildPotentialValues();
+    }
     return solver;
   }
 
@@ -202,18 +252,18 @@ class EngineImpl implements Engine {
     });
   }
 
-  getHint(grid: GridInput): Hint | null {
+  getHint(grid: GridInput, options?: HintOptions): Hint | null {
     return this.withSettings(() => {
-      const g = makeGrid(grid);
+      const g = makeGrid(grid, options?.candidates);
       const solver = this.newSolver(g);
       const hint = solver.getSingleHint();
       return hint === null ? null : this.toHint(hint, g, solver);
     });
   }
 
-  getAllHints(grid: GridInput): Hint[] {
+  getAllHints(grid: GridInput, options?: HintOptions): Hint[] {
     return this.withSettings(() => {
-      const g = makeGrid(grid);
+      const g = makeGrid(grid, options?.candidates);
       const solver = this.newSolver(g);
       // Warning/validator hints carry no technique; keep only solving hints.
       return solver

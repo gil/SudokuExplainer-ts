@@ -21,9 +21,8 @@ dependencies.
 
 Grid input is an 81-char string (digits `1`-`9`, `.` or `0` for empty,
 whitespace tolerated) or a `number[]` of length 81 (`0` = empty). Malformed
-input throws `InvalidGridError`. A 729-char pencilmark (Sukaku) string is also
-accepted, where position `cell * 9 + (value - 1)` holds the digit when that
-candidate is live and `.` otherwise.
+input throws `InvalidGridError`. Pencil marks are a separate input; see
+[Solve from your own pencil marks](#solve-from-your-own-pencil-marks).
 
 ### Rate a puzzle
 
@@ -53,6 +52,39 @@ if (hint) {
 
 `solvePath(puzzle)` returns every step as `{ hint, gridBefore }`, and
 `getAllHints(puzzle)` returns all hints available at the current grid state.
+
+### Solve from your own pencil marks
+
+By default the engine derives candidates from the placed digits, so a hint that
+only eliminates candidates comes back unchanged however many of its eliminations
+you applied. Pass your own marks and it solves from those instead:
+
+```ts
+import { getHint } from 'sudoku-explainer';
+
+// 81 masks, bit (value - 1) set when the candidate is live
+let candidates = myPencilMarks;
+const hint = getHint(puzzle, { candidates });
+for (const r of hint.removals) {
+  for (const v of r.values) candidates[r.cell.index] &= ~(1 << (v - 1));
+}
+getHint(puzzle, { candidates }); // moves on to the next step
+```
+
+`candidates` is either that `number[81]` of 9-bit masks or a 729-char Sukaku
+string, where position `cell * 9 + (value - 1)` holds the digit when that
+candidate is live and `.` or `0` when it is not. `parseCandidates` normalises
+either form to masks.
+
+Placed digits still come from the grid argument; the mask of a cell that holds a
+digit is ignored. The engine still removes candidates that a placed peer rules
+out, so a stale mark is forgiven, but it never adds one back: an empty cell left
+with no candidate throws `InvalidGridError` naming the cell rather than falling
+back to the derived set.
+
+`getHint` and `getAllHints` take this option. `rate`, `analyze` and `solvePath`
+do not, because a rating means "how hard is this puzzle", which is a property of
+the digits and not of one player's marks.
 
 ### Generate a puzzle
 

@@ -47,6 +47,24 @@ describe('hints', () => {
   it('getAllHints returns multiple structured hints', () => {
     expect(engine.getAllHints(fx('easy-s1').puzzle).length).toBeGreaterThan(1);
   });
+  // Guards the default (no pencil marks) path against the Java-derived fixtures
+  // across every band, so a change to how the grid is loaded cannot slip past.
+  const ids = ['easy-s1', 'medium-s3', 'hard-s1', 'fiendish-s3', 'diabolical-s1',
+    'cover-swordfish', 'cover-uloop1', 'cover-ate'];
+  for (const id of ids) {
+    it(`getHint matches the first fixture step of ${id}`, () => {
+      const f = fx(id);
+      const step = f.steps[0];
+      const h = engine.getHint(f.puzzle)!;
+      expect(h.name).toBe(step.technique);
+      expect(h.shortName).toBe(step.shortName);
+      expect(h.difficulty).toBe(step.rating);
+      expect(h.cell?.index ?? -1).toBe(step.cell);
+      expect(h.value ?? 0).toBe(step.value);
+      expect(h.removals.map((r) => ({ cell: r.cell.index, values: r.values }))).toEqual(step.removals);
+      expect(h.toString()).toBe(step.toString);
+    });
+  }
 });
 
 describe('solve and validity', () => {

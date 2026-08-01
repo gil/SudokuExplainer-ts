@@ -472,8 +472,9 @@ export class Grid {
   private cellPotentialValues: BitSet32[] = new Array(81);
   // Java field is named `isGiven`; renamed to avoid clashing with the method.
   private _isGiven: boolean[] = new Array(81).fill(false);
-  // 1 = Sudoku (default), 0 = Sukaku (set when pencilmarks are loaded). Only the
-  // Java GUI reads it, so nothing in scope branches on it; kept for fidelity.
+  // 1 = Sudoku (default), 0 = Sukaku (set when pencilmarks are loaded). Java
+  // only reads it from its GUI; here the API reads it to decide whether loaded
+  // marks may be rebuilt over (see EngineImpl.newSolver).
   private _isSudoku = 1;
 
   constructor() {
