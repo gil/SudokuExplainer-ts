@@ -8,6 +8,10 @@ The port reproduces the Java engine bit-for-bit. ER/EP/ED ratings match, the
 technique and eliminations match at every step, and seeded generator output is
 identical.
 
+> [!IMPORTANT]
+> This port is **experimental**. It is still being tested and improved
+> upon, and its API and behavior may change.
+
 ## Install
 
 ```sh
