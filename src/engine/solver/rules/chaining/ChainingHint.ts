@@ -206,7 +206,11 @@ export abstract class ChainingHint
     const result: Link[] = [];
     for (const p of this.getChain(target)) {
       if (p.parents.length <= 6) {
-        for (const pr of p.parents) result.push(new Link(pr.cell, pr.value, p.cell, p.value));
+        // The on/off state of both ends rides along: this is the only place
+        // that still has it, and it is what makes a link strong or weak.
+        for (const pr of p.parents) {
+          result.push(new Link(pr.cell, pr.value, p.cell, p.value, pr.isOn, p.isOn));
+        }
       }
     }
     return result;

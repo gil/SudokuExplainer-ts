@@ -67,6 +67,40 @@ describe('hints', () => {
   }
 });
 
+describe('link strength', () => {
+  // Every chaining rule funnels through ChainingHint.getLinksFrom, which is the
+  // only place that still knows each end's on/off state.
+  const linkSteps = () =>
+    engine
+      .solvePath(fx('diabolical-s1').puzzle)
+      .steps.map((s) => s.hint)
+      .filter((h) => (h.highlights.links ?? []).length > 0);
+
+  it('labels every link of a chain', () => {
+    const chained = linkSteps().filter((h) => /Cycle|Forcing Chain/.test(h.name));
+    expect(chained.length).toBeGreaterThan(0);
+    for (const h of chained) {
+      for (const l of h.highlights.links!) expect(typeof l.strong).toBe('boolean');
+    }
+  });
+
+  it('reads a strong link as the one running from off to on', () => {
+    const cycle = linkSteps().find((h) => /Y-Cycle/.test(h.name));
+    expect(cycle).toBeDefined();
+    const links = cycle!.highlights.links!;
+    // A Y-Cycle alternates: strong inside a bivalue cell, weak between cells.
+    for (const l of links) expect(l.strong).toBe(l.from.index === l.to.index);
+    expect(links.some((l) => l.strong)).toBe(true);
+    expect(links.some((l) => !l.strong)).toBe(true);
+  });
+
+  it('leaves strength off a rule that reasons without on/off states', () => {
+    const plain = linkSteps().find((h) => /Wing|Kite|Skyscraper|Rectangle/.test(h.name));
+    expect(plain).toBeDefined();
+    for (const l of plain!.highlights.links!) expect(l.strong).toBeUndefined();
+  });
+});
+
 describe('solve and validity', () => {
   it('solve returns the brute-force solution', () => {
     const f = fx('easy-s1');

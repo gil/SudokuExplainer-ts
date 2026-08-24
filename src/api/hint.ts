@@ -15,6 +15,24 @@ import {
   type RegionRef,
 } from './refs.js';
 
+/**
+ * An arrow between two candidates of the pattern.
+ *
+ * `strong` is true for a strong link and false for a weak one: a strong link
+ * runs from a candidate being removed to one being set, so if this end is not
+ * the value, the other must be. It is absent when the rule reasons without
+ * on/off states, which is every rule outside the chaining family, and absent
+ * too for a link inside a chain whose ends share a state, where a naked or
+ * hidden single carries the inference instead.
+ *
+ * Absent means unknown, never weak.
+ */
+export interface HighlightLink {
+  from: CandidateRef;
+  to: CandidateRef;
+  strong?: boolean;
+}
+
 export interface Highlights {
   greenCells?: CellRef[];
   redCells?: CellRef[];
@@ -22,7 +40,7 @@ export interface Highlights {
   redCandidates?: CandidateRef[];
   orangeCandidates?: CandidateRef[];
   regions?: RegionRef[];
-  links?: { from: CandidateRef; to: CandidateRef }[];
+  links?: HighlightLink[];
 }
 
 export interface Hint {
@@ -77,10 +95,14 @@ function buildHighlights(hint: EngineHint, grid: Grid): Highlights {
 
     const links = hint.getLinks(grid, 0);
     if (links !== null && links.length > 0) {
-      h.links = links.map((l) => ({
-        from: toCandidateRef(l.getSrcCell().getIndex(), l.getSrcValue()),
-        to: toCandidateRef(l.getDstCell().getIndex(), l.getDstValue()),
-      }));
+      h.links = links.map((l) => {
+        const strong = l.isStrong();
+        return {
+          from: toCandidateRef(l.getSrcCell().getIndex(), l.getSrcValue()),
+          to: toCandidateRef(l.getDstCell().getIndex(), l.getDstValue()),
+          ...(strong === undefined ? {} : { strong }),
+        };
+      });
     }
   } else {
     // DirectHint (Hidden/Naked Single): no view potentials, just the placement.

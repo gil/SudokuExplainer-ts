@@ -20,7 +20,7 @@ export {
   parseCandidates,
 } from './api/refs.js';
 
-export type { Hint, Highlights } from './api/hint.js';
+export type { Hint, Highlights, HighlightLink } from './api/hint.js';
 
 export type {
   Engine,
